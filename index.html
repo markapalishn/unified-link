@@ -9,33 +9,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Regular.otf') format('opentype');
+            src: url('fonts/T-Sans_Regular.otf') format('opentype');
             font-weight: 400;
             font-style: normal;
         }
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Medium.otf') format('opentype');
+            src: url('fonts/T-Sans_Medium.otf') format('opentype');
             font-weight: 500;
             font-style: normal;
         }
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Bold.otf') format('opentype');
+            src: url('fonts/T-Sans_Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Semibold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Bold.ttf') format('truetype');
             font-weight: 700;
             font-style: normal;
         }
         * {
-            font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
-        }
-        nav, nav * {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            font-family: 'SF Pro', system-ui, -apple-system, sans-serif;
+            letter-spacing: -0.03em;
         }
         html {
             color-scheme: light;
@@ -266,6 +285,7 @@
             background: #d80027;
         }
     </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-white min-h-screen">
     <div id="app">
@@ -342,46 +362,52 @@
             <aside class="w-full border-b border-gray-200 bg-transparent" style="height: calc(100vh - 128px); overflow-y: auto;">
                 <div class="p-4 md:p-6">
                     <div class="mb-6">
-                        <div class="mt-[50px] flex items-center justify-between">
-                            <h2 class="text-[36px] font-medium text-gray-900 leading-[44px]">Платежные ссылки</h2>
-                            <button onclick="openCreateModal()" class="rounded-xl px-4 py-2.5 text-sm font-normal text-gray-900 transition-colors hover:opacity-90" style="background-color: #FFDD2D;">
+                        <div class="payment-links-header-row">
+                            <h2 class="payment-links-title">Платежные ссылки</h2>
+                            <button onclick="openCreateModal()" class="payment-links-create-btn">
                                 Создать ссылку
                             </button>
                         </div>
-                        <div class="mt-[20px] h-px w-full bg-gray-200"></div>
-                        <div class="mt-[20px] mb-6 w-full">
-                            <div class="flex w-full items-center gap-3">
-                                <div class="relative w-[220px]">
-                                    <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="payment-links-divider"></div>
+                        <div class="payment-links-search-wrap">
+                            <div class="payment-links-search-row">
+                                <div class="payment-links-search-select-wrap">
+                                    <svg class="payment-links-search-select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                     </svg>
-                                    <select id="searchMode" onchange="handleSearchChange()" class="w-full appearance-none rounded-lg border border-gray-200 bg-white py-2.5 pl-3 pr-10 text-[15px] text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                    <select id="searchMode" onchange="handleSearchChange()" class="payment-links-search-select">
                                         <option value="merchant">По магазину</option>
                                         <option value="title">По названию</option>
                                     </select>
                                 </div>
-                                <input id="searchInput" type="text" oninput="handleSearchChange()" placeholder="Введите запрос для поиска" class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-[15px] text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                <input id="searchInput" type="text" oninput="handleSearchChange()" placeholder="Введите запрос для поиска" class="payment-links-search-input">
                             </div>
                         </div>
-                        <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
-                            <div class="min-w-0 flex-1">
-                                <div id="linksList" class="flex flex-col gap-3"></div>
+                        <div class="payment-links-content-layout">
+                            <div class="payment-links-list-col">
+                                <div id="linksList" class="payment-links-list"></div>
                             </div>
-                            <div class="w-full lg:w-[340px] lg:flex-shrink-0">
-                                <div class="rounded-3xl bg-gray-100 p-6">
-                                    <h3 class="mb-4 text-[17px] leading-6 font-medium text-gray-800">Частые вопросы</h3>
-                                    <div class="space-y-3">
-                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Как отправить ссылку клиенту в один клик</a>
-                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Почему оплата не проходит по ссылке</a>
-                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Где посмотреть статус платежа в истории</a>
+                            <div class="payment-links-sidebar">
+                                <div class="faq-card">
+                                    <h3 class="faq-card-title">Частые вопросы</h3>
+                                    <div class="faq-card-list">
+                                        <a href="#" class="faq-link">Как создать платежную ссылку?</a>
+                                        <a href="#" class="faq-link">Как создать многоразовую ссылку?</a>
+                                        <a href="#" class="faq-link">Где посмотреть статус платежа в истории</a>
                                     </div>
                                 </div>
-                                <div class="mt-6 rounded-3xl bg-gray-100 p-6">
-                                    <h3 class="mb-5 text-center text-[17px] leading-6 font-medium text-gray-800">Как вам раздел «Платежные ссылки»?</h3>
-                                    <div class="flex items-center justify-center gap-4">
-                                        <button onclick="setFeedbackReaction('sad')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Плохо">☹️</button>
-                                        <button onclick="setFeedbackReaction('neutral')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Нормально">😐</button>
-                                        <button onclick="setFeedbackReaction('happy')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Отлично">🙂</button>
+                                <div class="feedback-card">
+                                    <h3 class="feedback-card-title">Как вам раздел «Платежные ссылки»?</h3>
+                                    <div class="feedback-card-actions">
+                                        <button onclick="setFeedbackReaction('sad')" class="feedback-icon" data-reaction="sad" title="Плохо">
+                                            <img src="assets/face-frown.svg" alt="Плохо" class="feedback-icon-img">
+                                        </button>
+                                        <button onclick="setFeedbackReaction('neutral')" class="feedback-icon" data-reaction="neutral" title="Нормально">
+                                            <img src="assets/face-neutral.svg" alt="Нормально" class="feedback-icon-img">
+                                        </button>
+                                        <button onclick="setFeedbackReaction('happy')" class="feedback-icon" data-reaction="happy" title="Отлично">
+                                            <img src="assets/face-smile.svg" alt="Отлично" class="feedback-icon-img">
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -402,7 +428,7 @@
     <script>
         // State management
         // Check for data version to ensure demo data is loaded
-        const DATA_VERSION = '3.1'; // Increment this when demo data changes
+        const DATA_VERSION = '3.2'; // Increment this when demo data changes
         const storedVersion = localStorage.getItem('paymentLinksVersion');
         let links = [];
         
@@ -578,6 +604,10 @@
                     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
                 }
             ];
+            links = links.slice(0, 3).map((item, index) => ({
+                ...item,
+                status: index === 2 ? 'disabled' : 'ready'
+            }));
             selectedLinkId = links[0].id;
             saveState();
         }
@@ -727,14 +757,20 @@
 
 
         function getStatusMeta(status) {
+            if (status === 'disabled') {
+                return {
+                    dotClass: 'payment-link-status-dot-disabled',
+                    text: 'Выключена'
+                };
+            }
             if (status === 'draft') {
                 return {
-                    dotClass: 'bg-gray-400',
+                    dotClass: 'payment-link-status-dot-draft',
                     text: 'Черновик'
                 };
             }
             return {
-                dotClass: 'bg-green-500',
+                dotClass: 'payment-link-status-dot-ready',
                 text: 'Принимает платежи'
             };
         }
@@ -747,19 +783,23 @@
             renderLinksList();
         }
 
+        function enableLink(linkId) {
+            const link = links.find(item => item.id === linkId);
+            if (!link) {
+                return;
+            }
+            link.status = 'ready';
+            saveState();
+            renderLinksList();
+        }
+
         function setFeedbackReaction(reaction) {
-            const reactions = ['sad', 'neutral', 'happy'];
-            reactions.forEach(name => {
-                const button = document.querySelector(`button[onclick="setFeedbackReaction('${name}')"]`);
-                if (!button) {
-                    return;
-                }
-                if (name === reaction) {
-                    button.classList.remove('bg-gray-200');
-                    button.classList.add('bg-[#FFDD2D]');
+            const buttons = document.querySelectorAll('.feedback-icon');
+            buttons.forEach(button => {
+                if (button.dataset.reaction === reaction) {
+                    button.classList.add('active');
                 } else {
-                    button.classList.remove('bg-[#FFDD2D]');
-                    button.classList.add('bg-gray-200');
+                    button.classList.remove('active');
                 }
             });
         }
@@ -775,40 +815,43 @@
             });
 
             if (filteredLinks.length === 0) {
-                container.innerHTML = '<div class="rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500">Ничего не найдено</div>';
+                container.innerHTML = '<div class="payment-links-empty">Ничего не найдено</div>';
                 return;
             }
             
             container.innerHTML = filteredLinks.map(link => {
                 const statusMeta = getStatusMeta(link.status);
                 const titleText = link.title || 'Без названия';
-                return `
-                    <div class="w-full rounded-xl border border-gray-200 bg-white px-4 py-4 transition-colors hover:bg-gray-50">
-                        <div class="flex items-center justify-between gap-4">
-                            <div class="min-w-0">
-                                <div class="mb-1 flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full ${statusMeta.dotClass}"></span>
-                                    <span class="text-sm text-gray-600">${statusMeta.text}</span>
-                                </div>
-                                <div class="truncate text-base font-medium text-gray-900">${titleText}</div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="event.stopPropagation(); downloadQR('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Скопировать QR">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                const actionsHtml = link.status === 'disabled'
+                    ? `<button onclick="event.stopPropagation(); enableLink('${link.id}');" class="payment-link-enable-btn" title="Включить ссылку">Включить</button>`
+                    : `<div class="payment-link-actions">
+                                <button onclick="event.stopPropagation(); downloadQR('${link.id}');" class="payment-link-action-btn" title="Скопировать QR">
+                                    <svg class="payment-link-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h3v3H5v3H3V7zm13-2h3a2 2 0 012 2v3h-2V8h-3V5zM3 16h2v3h3v2H5a2 2 0 01-2-2v-3zm18 0v3a2 2 0 01-2 2h-3v-2h3v-3h2zM9 9h6v6H9V9z"/>
                                     </svg>
                                 </button>
-                                <button onclick="event.stopPropagation(); copyLinkUrl('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Скопировать ссылку">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button onclick="event.stopPropagation(); copyLinkUrl('${link.id}');" class="payment-link-action-btn" title="Скопировать ссылку">
+                                    <svg class="payment-link-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                     </svg>
                                 </button>
-                                <button onclick="event.stopPropagation(); openEditModal('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Редактировать">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button onclick="event.stopPropagation(); openEditModal('${link.id}');" class="payment-link-action-btn" title="Редактировать">
+                                    <svg class="payment-link-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </button>
+                            </div>`;
+                return `
+                    <div class="payment-link-row">
+                        <div class="payment-link-row-inner">
+                            <div class="payment-link-main">
+                                <div class="payment-link-status">
+                                    <span class="payment-link-status-dot ${statusMeta.dotClass}"></span>
+                                    <span class="payment-link-status-text">${statusMeta.text}</span>
+                                </div>
+                                <div class="payment-link-title">${titleText}</div>
                             </div>
+                            ${actionsHtml}
                         </div>
                     </div>
                 `;
@@ -1996,32 +2039,9 @@
             renderLinkForm();
         }
 
-        function normalizeSearchSelectAppearance() {
-            const searchSelect = document.getElementById('searchMode');
-            if (!searchSelect) {
-                return;
-            }
-
-            // Убираем левую иконку и ставим стрелку справа с корректным отступом
-            const wrapper = searchSelect.parentElement;
-            const icon = wrapper ? wrapper.querySelector('svg') : null;
-            if (icon) {
-                icon.classList.remove('left-3');
-                icon.classList.add('right-3');
-                const path = icon.querySelector('path');
-                if (path) {
-                    path.setAttribute('d', 'M19 9l-7 7-7-7');
-                }
-            }
-
-            searchSelect.classList.add('appearance-none', 'pl-3', 'pr-10');
-            searchSelect.classList.remove('pl-10', 'pr-3');
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             render();
-            normalizeSearchSelectAppearance();
         });
     </script>
 </body>

@@ -6,29 +6,54 @@
     <meta name="color-scheme" content="light">
     <title>Предпросмотр платёжной ссылки</title>
     <link rel="icon" type="image/png" href="assets/t-business-short.png">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <link rel="stylesheet" href="preview.css">
     <style>
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Regular.otf') format('opentype');
+            src: url('fonts/T-Sans_Regular.otf') format('opentype');
             font-weight: 400;
             font-style: normal;
         }
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Medium.otf') format('opentype');
+            src: url('fonts/T-Sans_Medium.otf') format('opentype');
             font-weight: 500;
             font-style: normal;
         }
         @font-face {
             font-family: 'T-Sans';
-            src: url('Fonts/T-Sans_Bold.otf') format('opentype');
+            src: url('fonts/T-Sans_Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Semibold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'SF Pro';
+            src: url('fonts/SFProText-Bold.ttf') format('truetype');
             font-weight: 700;
             font-style: normal;
         }
         * {
-            font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
+            font-family: 'SF Pro', system-ui, -apple-system, sans-serif;
+            letter-spacing: -0.03em;
         }
         html {
             color-scheme: light;
@@ -145,12 +170,12 @@
         }
     </style>
 </head>
-<body class="min-h-screen" style="background-color: #F6F7F8;">
+<body class="preview-body">
     <div id="app">
         <!-- Main Content -->
-        <div class="max-w-[824px] mx-auto py-4">
-            <div class="flex items-center justify-center min-h-[400px] w-full" id="previewContainer">
-                <div id="previewContent" class="transition-all duration-300"></div>
+        <div class="preview-page">
+            <div class="preview-container" id="previewContainer">
+                <div id="previewContent" class="preview-content"></div>
             </div>
         </div>
     </div>
@@ -380,24 +405,11 @@
 
         function renderPreview() {
             const container = document.getElementById('previewContent');
-            const previewContainer = document.getElementById('previewContainer');
 
             if (!link) {
-                container.innerHTML = '<div class="flex h-full items-center justify-center"><div class="text-center text-gray-500"><p>Ссылка не найдена</p></div></div>';
+                container.innerHTML = '<div class="preview-not-found-wrap"><div class="preview-not-found"><p>Ссылка не найдена</p></div></div>';
                 return;
             }
-
-            if (previewContainer) {
-                previewContainer.style.display = 'flex';
-                previewContainer.style.justifyContent = 'center';
-                previewContainer.style.alignItems = 'flex-start';
-                previewContainer.style.width = '100%';
-                previewContainer.style.maxWidth = '100%';
-            }
-            
-            container.style.maxWidth = '100%';
-            container.style.width = '100%';
-            container.style.margin = '0';
 
             if (showPaymentForm) {
                 container.innerHTML = renderPaymentForm(link);
@@ -429,7 +441,7 @@
                 : (freeAmount || 0);
             
             return `
-                <div class="rounded-[24px] border border-gray-200 bg-white animate-in overflow-hidden">
+                <div class="preview-card animate-in">
                     <div class="payment-header">
                         <div class="payment-header-brand">
                             <div class="payment-header-logo">
@@ -444,17 +456,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="p-4 md:p-6 flex flex-col">
-                        <div class="space-y-6">
+                    <div class="preview-card-content">
+                        <div class="preview-stack-lg">
                             <div>
-                                <h2 class="text-[40px] font-normal text-black leading-tight">${link.title || link.merchantName}</h2>
+                                <h2 class="preview-title">${link.title || link.merchantName}</h2>
                                 ${link.description ? `
-                                    <p class="text-xl text-gray-500 mt-[10px]">${link.description}</p>
+                                    <p class="preview-description">${link.description}</p>
                                 ` : ''}
                             </div>
                             ${link.amountMode === 'fixed' ? `
-                                <div class="-mt-2">
-                                    <div class="text-[40px] font-normal text-black">
+                                <div class="preview-amount-wrap">
+                                    <div class="preview-amount">
                                         ${(link.fixedAmount || 0).toLocaleString('ru-RU')} ₽
                                     </div>
                                 </div>
@@ -465,50 +477,50 @@
                                     value="${freeAmount > 0 ? formatAmount(freeAmount.toString()) : ''}" 
                                     placeholder="0 ₽" 
                                     oninput="handleAmountInput(event)"
-                                    class="w-full rounded-lg border border-gray-200 px-4 py-3 text-[40px] font-normal text-black focus:outline-none preview-input">
-                                <p class="mt-1 text-base text-gray-500">Введите сумму</p>
+                                    class="preview-input preview-input-amount">
+                                <p class="preview-input-help">Введите сумму</p>
                             </div>
                         ` : ''}
                         ${(link.collectOrderDetails || false) ? `
                             <div>
-                                <label class="mb-2 block text-base font-medium text-black">
+                                <label class="preview-label">
                                     Подробности о заказе
-                                    ${(link.orderDetailsRequired || false) ? '<span class="text-red-500">*</span>' : ''}
+                                    ${(link.orderDetailsRequired || false) ? '<span class="preview-required">*</span>' : ''}
                                 </label>
                                 <input type="text" id="orderDetails"
                                     placeholder="Например, пожелания к заказу" 
                                     ${(link.orderDetailsRequired || false) ? 'required' : ''}
-                                    class="w-full rounded-lg border border-gray-200 px-4 py-3 text-lg focus:outline-none md:text-xl preview-input">
+                                    class="preview-input preview-input-text">
                             </div>
                         ` : ''}
                         ${(link.collectPhone || false) ? `
                             <div>
-                                <label class="mb-2 block text-base font-medium text-black">
+                                <label class="preview-label">
                                     Номер телефона
-                                    ${(link.phoneRequired || false) ? '<span class="text-red-500">*</span>' : ''}
+                                    ${(link.phoneRequired || false) ? '<span class="preview-required">*</span>' : ''}
                                 </label>
                                 <input type="tel" id="customerPhone" 
                                     placeholder="+7 (999) 123-45-67" 
                                     ${(link.phoneRequired || false) ? 'required' : ''}
-                                    class="w-full rounded-lg border border-gray-200 px-4 py-3 text-lg focus:outline-none md:text-xl preview-input">
+                                    class="preview-input preview-input-text">
                             </div>
                         ` : ''}
                         ${(link.collectEmail || false) ? `
                             <div>
-                                <label class="mb-2 block text-base font-medium text-black">
+                                <label class="preview-label">
                                     Email
-                                    ${(link.emailRequired || false) ? '<span class="text-red-500">*</span>' : ''}
+                                    ${(link.emailRequired || false) ? '<span class="preview-required">*</span>' : ''}
                                 </label>
                                 <input type="email" id="customerEmail" 
                                     placeholder="example@mail.com" 
                                     ${(link.emailRequired || false) ? 'required' : ''}
-                                    class="w-full rounded-lg border border-gray-200 px-4 py-3 text-lg focus:outline-none md:text-xl preview-input">
+                                    class="preview-input preview-input-text">
                             </div>
                         ` : ''}
                         </div>
-                        <div class="flex justify-center mt-6">
+                        <div class="preview-actions-center">
                             <button onclick="if (validatePaymentForm(${(link.collectOrderDetails || false)}, ${(link.orderDetailsRequired || false)}, ${(link.collectEmail || false)}, ${(link.emailRequired || false)}, ${(link.collectPhone || false)}, ${(link.phoneRequired || false)}, ${link.amountMode === 'free'})) { showPaymentForm = true; renderPreview(); }" 
-                                class="rounded-xl bg-yellow-400 px-6 py-4 text-base font-normal text-black transition-all hover:bg-yellow-300 active:scale-95 md:text-lg" style="min-width: 328px;">
+                                class="preview-primary-btn" style="min-width: 328px;">
                                 Оплатить
                             </button>
                         </div>
@@ -524,7 +536,7 @@
                     : (freeAmount || 0);
                 
                 return `
-                    <div class="rounded-[24px] border border-gray-200 bg-white animate-in overflow-hidden max-w-[412px] mx-auto" style="animation: scaleIn 0.3s ease-out;">
+                    <div class="preview-card preview-card-narrow animate-in" style="animation: scaleIn 0.3s ease-out;">
                         <div class="payment-header">
                             <div class="payment-header-brand">
                                 <div class="payment-header-logo">
@@ -539,19 +551,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-4 md:p-6 flex flex-col">
-                            <div class="flex flex-col items-center justify-center space-y-4 text-center flex-grow">
-                                <div class="rounded-full bg-green-100 p-3 md:p-4">
-                                    <svg class="h-10 w-10 text-green-600 md:h-12 md:w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="preview-card-content">
+                            <div class="payment-success-wrap">
+                                <div class="payment-success-icon-wrap">
+                                    <svg class="payment-success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                 </div>
-                                <h2 class="text-xl font-medium text-black md:text-2xl">Оплата прошла успешно</h2>
-                                <p class="text-sm text-gray-500 md:text-base">Спасибо за оплату! Ваш платёж обработан</p>
+                                <h2 class="payment-success-title">Оплата прошла успешно</h2>
+                                <p class="payment-success-text">Спасибо за оплату! Ваш платёж обработан</p>
                             </div>
-                            <div class="flex justify-center mt-6">
+                            <div class="preview-actions-center">
                                 <button onclick="isPaid = false; showPaymentForm = false; freeAmount = 0; renderPreview();" 
-                                    class="rounded-xl bg-yellow-400 px-6 py-4 text-base font-normal text-black transition-all hover:bg-yellow-300 active:scale-95 md:text-lg" style="min-width: 328px;">
+                                    class="preview-primary-btn" style="min-width: 328px;">
                                     Оплатить еще раз
                                 </button>
                             </div>
@@ -573,7 +585,7 @@
                 : (freeAmount || 0);
             
                 return `
-                    <div class="rounded-[24px] border border-gray-200 bg-white animate-in slide-in overflow-hidden max-w-[412px] mx-auto">
+                    <div class="preview-card preview-card-narrow animate-in slide-in">
                         <div class="payment-header">
                             <div class="payment-header-brand">
                                 <div class="payment-header-logo">
@@ -588,39 +600,39 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-4 md:p-6 flex flex-col">
-                            <div class="space-y-4 md:space-y-6">
-                                <div class="flex items-center justify-between border-b border-gray-200 pb-3 md:pb-4">
-                                    <h2 class="text-[32px] font-medium text-black leading-tight">Оплата заказа</h2>
+                        <div class="preview-card-content">
+                            <div class="preview-stack-md">
+                                <div class="payment-form-head">
+                                    <h2 class="payment-form-title">Оплата заказа</h2>
                                     <button onclick="showPaymentForm = false; isPaid = false; selectedPaymentMethod = null; renderPreview();" 
-                                        class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 active:scale-95" title="Назад">
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="payment-form-back-btn" title="Назад">
+                                        <svg class="payment-form-back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="rounded-lg bg-gray-50 p-4">
-                                    <div class="space-y-3">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[18px] font-normal text-gray-500">Сумма к оплате:</span>
-                                            <span class="text-[24px] font-medium text-black">${paymentAmount.toLocaleString('ru-RU')} ₽</span>
+                                <div class="payment-summary-card">
+                                    <div class="payment-summary-stack">
+                                        <div class="payment-summary-row">
+                                            <span class="payment-summary-label">Сумма к оплате:</span>
+                                            <span class="payment-summary-value">${paymentAmount.toLocaleString('ru-RU')} ₽</span>
                                         </div>
-                                        <div class="flex justify-between text-[18px] border-t border-gray-200 pt-3">
-                                            <span class="text-gray-500">Продавец:</span>
-                                            <span class="font-normal text-black">${link.merchantName}</span>
+                                        <div class="payment-summary-row payment-summary-row-bordered">
+                                            <span class="payment-summary-label">Продавец:</span>
+                                            <span class="payment-summary-merchant">${link.merchantName}</span>
                                         </div>
                                     </div>
                                 </div>
                                 ${link.description ? `
-                                    <div class="rounded-lg bg-gray-50 p-4">
-                                        <div class="flex flex-col text-[18px]">
-                                            <span class="text-gray-500 mb-1">Описание:</span>
-                                            <span class="font-normal text-black">${link.description}</span>
+                                    <div class="payment-summary-card">
+                                        <div class="payment-description">
+                                            <span class="payment-summary-label payment-description-label">Описание:</span>
+                                            <span class="payment-summary-merchant">${link.description}</span>
                                         </div>
                                     </div>
                                 ` : ''}
                                 <div>
-                                    <div class="flex flex-col gap-2" id="paymentMethods">
+                                    <div class="payment-methods" id="paymentMethods">
                                         ${paymentMethods.filter(method => ['tpay', 'sberpay', 'alfapay'].includes(method.value)).map(method => {
                                             const isSelected = selectedPaymentMethod === method.value;
                                             const selectedColor = isSelected ? method.color : method.color;
@@ -628,16 +640,16 @@
                                             
                                             let buttonContent = method.label;
                                             let buttonStyle = `background-color: ${selectedColor}; color: ${method.textColor}; border-color: ${selectedColor}; opacity: ${opacity};`;
-                                            let buttonClass = `w-full h-[44px] rounded-xl border-2 px-6 text-center flex items-center justify-center transition-all active:scale-95 ${isSelected ? 'transform scale-[1.02]' : 'hover:opacity-95'}`;
+                                            let buttonClass = `payment-method-btn ${isSelected ? 'payment-method-selected' : 'payment-method-hover'}`;
                                             
                                             if (method.value === 'tpay') {
-                                                buttonContent = `<img src="assets/Button Pay.png" alt="Т-Пей" class="h-[20px] w-auto">`;
+                                                buttonContent = `<img src="assets/Button Pay.png" alt="Т-Пей" class="payment-method-logo">`;
                                                 buttonStyle = `background-color: ${selectedColor}; border-color: ${selectedColor}; opacity: ${opacity};`;
                                             } else if (method.value === 'sberpay') {
-                                                buttonContent = `<img src="assets/SberPay-logo-01 2.png" alt="СберПэй" class="h-[20px] w-auto">`;
+                                                buttonContent = `<img src="assets/SberPay-logo-01 2.png" alt="СберПэй" class="payment-method-logo">`;
                                                 buttonStyle = `background-color: #FFFFFF; border: 1.5px solid #EAECEE; opacity: ${opacity};`;
                                             } else if (method.value === 'alfapay') {
-                                                buttonContent = `<img src="assets/AlfaPay Full RU.png" alt="АльфаПэй" class="h-[20px] w-auto">`;
+                                                buttonContent = `<img src="assets/AlfaPay Full RU.png" alt="АльфаПэй" class="payment-method-logo">`;
                                                 buttonStyle = `background-color: #FFFFFF; border: 1.5px solid #EAECEE; opacity: ${opacity};`;
                                             }
                                             
@@ -650,10 +662,10 @@
                                             `;
                                         }).join('')}
                                         ${!showMoreMethods ? `
-                                            <button class="w-full min-h-[32px] flex items-center justify-center rounded-lg px-2 py-1 transition-all active:scale-95 hover:opacity-90" 
+                                            <button class="payment-method-toggle-btn" 
                                                 style="background-color: rgba(36, 74, 127, 0.06);" 
                                                 onclick="toggleMoreMethods()">
-                                                <span class="text-[13px] font-normal text-[#126df7]">Еще способы</span>
+                                                <span class="payment-method-toggle-text">Еще способы</span>
                                             </button>
                                         ` : ''}
                                         ${showMoreMethods ? `
@@ -663,21 +675,21 @@
                                                 
                                                 let buttonContent = method.label;
                                                 if (method.value === 'sbp') {
-                                                    buttonContent = `<img src="assets/SBP.png" alt="СБП по QR" class="h-[20px] w-auto">`;
+                                                    buttonContent = `<img src="assets/SBP.png" alt="СБП по QR" class="payment-method-logo">`;
                                                 }
                                                 
                                                 return `
                                                 <button onclick="selectPaymentMethod('${method.value}')" 
-                                                    class="w-full h-[44px] rounded-xl border-2 px-6 text-center flex items-center justify-center transition-all active:scale-95 ${isSelected ? 'transform scale-[1.02]' : 'hover:opacity-95'}"
+                                                    class="payment-method-btn ${isSelected ? 'payment-method-selected' : 'payment-method-hover'}"
                                                     style="background-color: #FFFFFF; border: 1.5px solid #EAECEE; color: #000000; opacity: ${opacity};">
                                                     ${buttonContent}
                                                 </button>
                                                 `;
                                             }).join('')}
-                                            <button class="w-full min-h-[32px] flex items-center justify-center rounded-lg px-2 py-1 transition-all active:scale-95 hover:opacity-90" 
+                                            <button class="payment-method-toggle-btn" 
                                                 style="background-color: rgba(36, 74, 127, 0.06);" 
                                                 onclick="toggleMoreMethods()">
-                                                <span class="text-[13px] font-normal text-[#126df7]">Свернуть</span>
+                                                <span class="payment-method-toggle-text">Свернуть</span>
                                             </button>
                                         ` : ''}
                                     </div>
@@ -698,11 +710,11 @@
             }, 100);
             
             return `
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 md:p-6 animate-in slide-in">
-                    <div class="flex flex-col items-center justify-center space-y-4">
-                        <p class="text-center text-sm font-medium text-black">Отсканируйте QR-код для оплаты</p>
-                        <div class="rounded-lg bg-white p-3 md:p-4">
-                            <canvas id="${qrId}" class="max-w-full h-auto" width="180" height="180"></canvas>
+                <div class="payment-extra-card animate-in slide-in">
+                    <div class="payment-extra-content">
+                        <p class="payment-extra-title">Отсканируйте QR-код для оплаты</p>
+                        <div class="payment-qr-wrap">
+                            <canvas id="${qrId}" class="payment-qr-canvas" width="180" height="180"></canvas>
                         </div>
                     </div>
                 </div>
@@ -729,38 +741,38 @@
 
         function renderCardForm() {
             return `
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 md:p-6 animate-in slide-in">
-                    <h3 class="mb-4 text-sm font-medium text-black">Данные карты</h3>
-                    <div class="space-y-4">
+                <div class="payment-extra-card animate-in slide-in">
+                    <h3 class="payment-extra-title payment-extra-title-left">Данные карты</h3>
+                    <div class="payment-card-form">
                         <div>
-                            <label class="mb-1 block text-xs font-medium text-black">Номер карты</label>
+                            <label class="payment-card-label">Номер карты</label>
                             <input type="text" id="cardNumber" inputmode="numeric" value="${cardData.number}" 
                                 placeholder="0000 0000 0000 0000" maxlength="19"
                                 oninput="formatCardNumber(this)"
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                class="payment-card-input">
                         </div>
-                        <div class="grid grid-cols-2 gap-3 md:gap-4">
+                        <div class="payment-card-grid">
                             <div>
-                                <label class="mb-1 block text-xs font-medium text-black">Срок действия</label>
+                                <label class="payment-card-label">Срок действия</label>
                                 <input type="text" id="cardExpiry" inputmode="numeric" value="${cardData.expiry}" 
                                     placeholder="MM/YY" maxlength="5"
                                     oninput="formatCardExpiry(this)"
-                                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                    class="payment-card-input">
                             </div>
                             <div>
-                                <label class="mb-1 block text-xs font-medium text-black">CVC</label>
+                                <label class="payment-card-label">CVC</label>
                                 <input type="text" id="cardCvc" inputmode="numeric" value="${cardData.cvc}" 
                                     placeholder="000" maxlength="3"
                                     oninput="cardData.cvc = this.value.replace(/\\D/g, '').slice(0, 3)"
-                                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                    class="payment-card-input">
                             </div>
                         </div>
                         <div>
-                            <label class="mb-1 block text-xs font-medium text-black">Имя владельца</label>
+                            <label class="payment-card-label">Имя владельца</label>
                             <input type="text" id="cardName" value="${cardData.name}" 
                                 placeholder="IVAN IVANOV"
                                 oninput="cardData.name = this.value.toUpperCase()"
-                                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm uppercase focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                class="payment-card-input payment-card-input-uppercase">
                         </div>
                     </div>
                 </div>
@@ -772,10 +784,10 @@
                 (cardData.number && cardData.expiry && cardData.cvc && cardData.name);
             
             return `
-                <div class="flex justify-center mt-6">
+                <div class="preview-actions-center">
                     <button onclick="processPayment()" 
                         ${!isCardValid ? 'disabled' : ''}
-                        class="rounded-xl bg-yellow-400 px-6 py-4 text-base font-normal text-black transition-all hover:bg-yellow-300 active:scale-95 shadow-md hover:shadow-lg md:text-lg ${!isCardValid ? 'cursor-not-allowed bg-gray-300 opacity-50' : ''}"
+                        class="preview-primary-btn preview-primary-btn-shadow ${!isCardValid ? 'preview-primary-btn-disabled' : ''}"
                         style="min-width: 328px;">
                         Оплатить
                     </button>

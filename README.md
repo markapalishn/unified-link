@@ -13,13 +13,15 @@
 ## Структура проекта
 
 - `index.html` - основной интерфейс личного кабинета
+- `styles.css` - стили блока платежных ссылок в личном кабинете
 - `preview.html` - страница предпросмотра платежной ссылки
-- `Fonts/` - шрифты T-Sans
-- `t-business.png` - логотип
+- `preview.css` - стили страницы предпросмотра
+- `fonts/` - шрифты T-Sans
+- `assets/` - логотипы и изображения платежных методов
 
 ## Демо
 
-Проект опубликован на GitHub Pages: https://markapalishn.github.io/payment-link-mvp/
+Проект опубликован на GitHub Pages: https://markapalishn.github.io/unified-link/
 
 ## Использование
 

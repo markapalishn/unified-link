@@ -1,0 +1,334 @@
+.payment-links-header-row {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.payment-links-title {
+    font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: normal;
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.payment-links-create-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #111827;
+    background: #FFDD2D;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.payment-links-create-btn:hover {
+    opacity: 0.9;
+}
+
+.payment-links-divider {
+    margin-top: 20px;
+    height: 1px;
+    width: 100%;
+    background: #e5e7eb;
+}
+
+.payment-links-search-wrap {
+    margin-top: 20px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.payment-links-search-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-links-search-select-wrap {
+    position: relative;
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.payment-links-search-select-icon {
+    pointer-events: none;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.payment-links-search-select,
+.payment-links-search-input {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.payment-links-search-select:focus,
+.payment-links-search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.payment-links-search-select {
+    width: 100%;
+    appearance: none;
+    background: #ffffff;
+    padding: 10px 40px 10px 12px;
+}
+
+.payment-links-search-input {
+    width: 100%;
+    background: #ffffff;
+    padding: 10px 16px;
+}
+
+.payment-links-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.payment-links-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.payment-links-list-col {
+    min-width: 0;
+    flex: 1;
+}
+
+.payment-links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.payment-links-empty {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.payment-link-row {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 16px;
+    transition: background-color 0.2s;
+}
+
+.payment-link-row:hover {
+    background: #f9fafb;
+}
+
+.payment-link-row-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.payment-link-main {
+    min-width: 0;
+}
+
+.payment-link-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.payment-link-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+}
+
+.payment-link-status-dot-draft {
+    background: #9ca3af;
+}
+
+.payment-link-status-dot-ready {
+    background: #22c55e;
+}
+
+.payment-link-status-dot-disabled {
+    background: #9ca3af;
+}
+
+.payment-link-status-text {
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.payment-link-title {
+    font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 400;
+    color: #111827;
+}
+
+.payment-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-link-action-btn {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #4b5563;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.payment-link-action-btn:hover {
+    background: #f3f4f6;
+}
+
+.payment-link-action-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.payment-link-enable-btn {
+    border: none;
+    border-radius: 10px;
+    background: #FFDD2D;
+    color: #111827;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.payment-link-enable-btn:hover {
+    opacity: 0.9;
+}
+
+.payment-links-sidebar {
+    width: 100%;
+}
+
+.faq-card,
+.feedback-card {
+    border-radius: 24px;
+    background: #f3f4f6;
+    padding: 24px;
+}
+
+.feedback-card {
+    margin-top: 24px;
+}
+
+.faq-card-title,
+.feedback-card-title {
+    font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: normal;
+    font-size: 17px;
+    line-height: 24px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.faq-card-title {
+    margin: 0 0 16px 0;
+}
+
+.faq-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.faq-link {
+    display: block;
+    font-size: 15px;
+    line-height: 20px;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.feedback-card-title {
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.feedback-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.feedback-icon {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    min-height: 56px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: #e5e7eb;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.feedback-icon:hover {
+    background: #d1d5db;
+}
+
+.feedback-icon.active {
+    background: #FFDD2D;
+}
+
+.feedback-icon-img {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+@media (min-width: 1024px) {
+    .payment-links-content-layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .payment-links-sidebar {
+        width: 340px;
+        flex-shrink: 0;
+    }
+}
