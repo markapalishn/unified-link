@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="ru" style="color-scheme: light;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Платёжная ссылка - MVP</title>
+    <link rel="icon" type="image/png" href="assets/t-business-short.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'T-Sans';
+            src: url('Fonts/T-Sans_Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'T-Sans';
+            src: url('Fonts/T-Sans_Medium.otf') format('opentype');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'T-Sans';
+            src: url('Fonts/T-Sans_Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+        }
+        * {
+            font-family: 'T-Sans', system-ui, -apple-system, sans-serif;
+        }
+        nav, nav * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+        }
+        html {
+            color-scheme: light;
+        }
+        @media (prefers-color-scheme: dark) {
+            html {
+                color-scheme: light !important;
+            }
+            body {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+        }
+        :root {
+            --primary: #428BF9;
+            --accent: #FFDD2D;
+            --background: #FFFFFF;
+            --foreground: #000000;
+            --border: #E5E7EB;
+            --muted: #F9FAFB;
+            --tui-background-base-alt: #f6f7f8;
+            --tui-border-normal: rgba(0, 16, 36, 0.12);
+            --tui-text-primary: rgba(0, 0, 0, 0.8);
+            --tui-text-secondary: rgba(0, 0, 0, 0.54);
+            --tui-text-tertiary: rgba(0, 0, 0, 0.4);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        .nav-tab {
+            padding: 22px 0;
+            font-size: 13px;
+            line-height: 20px;
+            color: var(--tui-text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: var(--tui-text-primary);
+        }
+        .nav-tab.active {
+            color: var(--tui-text-primary);
+            border-bottom-color: var(--tui-text-secondary);
+        }
+        nav {
+            background-color: var(--tui-background-base-alt);
+        }
+        #previewContent input:focus,
+        #previewContent textarea:focus,
+        #previewContent .preview-input:focus {
+            border-color: #DED0BB !important;
+            box-shadow: 0 0 0 2px rgba(222, 208, 187, 0.2) !important;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            background-color: #D6F4DD;
+            border-radius: 12px;
+            box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: flex-start;
+            overflow: hidden;
+            min-width: 280px;
+            max-width: 400px;
+            animation: slideInFromRight 0.3s ease-out;
+        }
+        .notification-toast-left {
+            display: none;
+        }
+        .notification-toast-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .notification-toast-content {
+            flex: 1;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notification-toast-text {
+            font-size: 13px;
+            line-height: 20px;
+            color: rgba(0, 0, 0, 0.8);
+            font-weight: 400;
+        }
+        .notification-toast-close {
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .notification-toast-close:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .notification-toast-close-icon {
+            width: 16px;
+            height: 16px;
+        }
+        .scrollbar-hide {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOutToRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        .notification-toast.hiding {
+            animation: slideOutToRight 0.3s ease-out forwards;
+        }
+        #previewContainer {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+        }
+        .payment-header {
+            background-color: var(--tui-background-base-alt);
+            border-bottom: 1px solid var(--tui-border-normal);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .payment-header-brand {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex: 0 1 auto;
+            min-width: 94px;
+            height: 32px;
+        }
+        .payment-header-logo {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            height: 32px;
+        }
+        .payment-header-logo img {
+            height: 100%;
+            width: auto;
+            display: block;
+        }
+        .payment-header-flag {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            padding: 4px 8px;
+            background-color: rgba(36, 74, 127, 0.06);
+            border-radius: 100px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .payment-header-flag:hover {
+            background-color: rgba(36, 74, 127, 0.1);
+        }
+        .payment-header-flag-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .payment-header-flag-stripe {
+            position: absolute;
+            left: 0;
+            right: 0;
+        }
+        .payment-header-flag-stripe.white {
+            top: 0;
+            height: 33.33%;
+            background: #ffffff;
+        }
+        .payment-header-flag-stripe.blue {
+            top: 33.33%;
+            height: 33.33%;
+            background: #0052b4;
+        }
+        .payment-header-flag-stripe.red {
+            bottom: 0;
+            height: 33.33%;
+            background: #d80027;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <div id="app">
+        <!-- Navigation Header -->
+        <nav class="bg-[var(--tui-background-base-alt)] border-b border-[var(--tui-border-normal)]">
+            <!-- First Level Navigation -->
+            <div class="max-w-[1286px] mx-auto flex items-center justify-between h-16 px-4 md:px-8">
+                <!-- Left Side -->
+                <div class="flex items-center gap-4 md:gap-8 flex-1 min-w-0">
+                    <!-- Logo -->
+                    <div class="flex items-center flex-shrink-0">
+                        <img src="assets/t-business.png" alt="Т-Бизнес" class="h-9 w-auto hidden md:block">
+                        <img src="assets/t-business-short.png" alt="Т-Бизнес" class="h-9 w-auto block md:hidden">
+                    </div>
+                    <!-- Menu Tabs -->
+                    <div class="flex items-center gap-6 h-full overflow-x-auto scrollbar-hide min-w-0 flex-1">
+                        <div class="flex items-center gap-6 h-full min-w-max">
+                            <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveTab('payments', this)">
+                                Счета и платежи
+                            </button>
+                            <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveTab('acquiring', this)">
+                                Интернет-эквайринг
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Side -->
+                <div class="flex items-center gap-4">
+                    <!-- Search Icon -->
+                    <button class="hidden md:flex w-8 h-8 items-center justify-center text-[var(--tui-text-secondary)] hover:text-[var(--tui-text-primary)] transition-colors" title="Поиск">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+                    <!-- Profile -->
+                    <div class="flex items-center gap-2 bg-white rounded-xl px-2 md:px-3 py-2">
+                        <span class="text-[13px] text-[var(--tui-text-secondary)] hidden md:inline">ООО «Трояна»</span>
+                        <div class="w-8 h-8 bg-[var(--tui-text-tertiary)] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Second Level Navigation -->
+            <div class="max-w-[1286px] mx-auto h-16 border-t border-[var(--tui-border-normal)] overflow-x-auto scrollbar-hide">
+                <div class="flex items-center gap-6 px-4 md:px-8 min-w-max h-full">
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('main', this)">
+                        Главное
+                    </button>
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('operations', this)">
+                        Операции
+                    </button>
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('accounts', this)">
+                        Счета
+                    </button>
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('reimbursement', this)">
+                        Возмещение
+                    </button>
+                    <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('shops', this)">
+                        Магазины
+                    </button>
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('blacklist', this)">
+                        Черный список
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="max-w-[1286px] mx-auto">
+            <!-- Settings Panel -->
+            <aside class="w-full border-b border-gray-200 bg-transparent" style="height: calc(100vh - 128px); overflow-y: auto;">
+                <div class="p-4 md:p-6">
+                    <div class="mb-6">
+                        <div class="mb-6 flex items-center justify-between">
+                            <h2 class="text-[36px] font-medium text-gray-900 leading-[44px]">Магазины</h2>
+                            <button onclick="openCreateModal()" class="rounded-xl px-4 py-2.5 text-sm font-normal text-gray-900 transition-colors hover:opacity-90" style="background-color: #FFDD2D;">
+                                Создать ссылку
+                            </button>
+                        </div>
+                        <!-- Tabs -->
+                        <div class="flex items-center gap-6 mb-6 border-b border-gray-200 pb-0 overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-6 min-w-max">
+                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-500 border-b-2 border-transparent transition-colors hover:text-gray-900 whitespace-nowrap flex-shrink-0" style="font-size: 15px;" onclick="setShopTab('online', this)">
+                                    Интернет-магазины
+                                </button>
+                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-500 border-b-2 border-transparent transition-colors hover:text-gray-900 whitespace-nowrap flex-shrink-0" style="font-size: 15px;" onclick="setShopTab('invoicing', this)">
+                                    Выставление счетов
+                                </button>
+                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-900 border-b-2 transition-colors whitespace-nowrap flex-shrink-0" style="border-bottom-color: #FFDD2D; font-size: 15px;" onclick="setShopTab('reusable', this)">
+                                    Многоразовая ссылка
+                                </button>
+                            </div>
+                        </div>
+                        <div id="linksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Modal for Create/Edit -->
+        <div id="modalOverlay" onclick="if(event.target === this) closeModal();" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center" style="display: none;">
+            <div id="modalContent" onclick="event.stopPropagation();" class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <!-- Modal content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        // Check for data version to ensure demo data is loaded
+        const DATA_VERSION = '3.1'; // Increment this when demo data changes
+        const storedVersion = localStorage.getItem('paymentLinksVersion');
+        let links = [];
+        
+        // If version changed or no version exists, clear old data and load fresh demo data
+        if (!storedVersion || storedVersion !== DATA_VERSION) {
+            localStorage.removeItem('paymentLinks');
+            localStorage.setItem('paymentLinksVersion', DATA_VERSION);
+            links = [];
+        } else {
+            links = JSON.parse(localStorage.getItem('paymentLinks') || '[]');
+        }
+        
+        let selectedLinkId = localStorage.getItem('selectedLinkId') || null;
+        let editingLinkId = null; // ID ссылки, которая сейчас редактируется
+
+        // Base64 encoded T-Bank logo
+        const tBankLogoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALwAAABECAYAAAA7iF/fAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAb4SURBVHgB7Zyxb9tGFMbfUXaHFgHUIQHqpTKSdGmDqokNZKTXNmjroQUyRV66dGiCoHPsvUGStR0sr0WApn9BNQaI7bBIXaBpAzNLAtSLCqcdbEns92TaliORdxRJiRTfDzAkmUeJx/v47r13jyQSBEEQBEEQBEEQBEEQxo/ynl3wqACos08UCYXHIkEoECJ4oVCI4IVCIYIXCoUIXigUInihUIjghUIhghcKhQheKBQieKFQiOCFQiGCFwqFCF4oFCJ4oVCI4IVCMUUxmfvyDRoF6z/u0Ti4dOlSqvcLKKUa6+vrC6btcTzbeKkYNG222+1Zx3GaBm1D+4ljXMAxNsiAubk52/O8X4K2b2xsKNPftSxr6dGjR3XSMD8/X+10Ovyb5ZBmLs7Hglj4HMFiIjOxM+WpqakaTThRxI6L3xXB5whYzmsR239GE0xUsfMHEXxOuHz5cgUvNYqG7c8KE8cwYmdE8Dmh1WrVaAhg5b+hCWNYsTOxg9aCU0dA95xigIFzTdpp3JkH+Ps8YJtdrVbLpsFr1uGZbn9/fyixM4kLfuaMR++cPvm/ja3wBwa8V/Ho1FvHn1/uEL34O/sPGYDY10yzF3FAJoPFXAnY3ETmYxFtWAT2gO0cvF7H6zLlHBOxY0wczIaLg8TOJCL4mTNEVz9u0xW7Q6fePJllerGj6NOvp0P3/+7bFs2c7t9vc8ui7++XIH4qOjrrzgP9M2YBO6ANB6/LlGN6xF4JauOLfSFsNost+KufdOirL9p9Qo8LXwAzNl9EbbpdL1FGqSIoNG4MS+s+fPjQpQj4Ax3krnRnGX7FQNdLpdKdQW1wIfBx2jFmI+N+wkWr4pgoSZISOxNb8DevtShtbtbalEUgpDtR2mPQ2D3htw72vbe5uVnX7aMJVt1DEfNA47v5vT2ooR+8NmgIovQzSbHj4llFn1b5vGl+00jsjGRpxgNbQR7MbT/dGIgmWG30fmC3JqRtN3ilCSOK2BkR/HjhqfpxkOgvXrxYo/BpfK33M7s1eAka+MPgdaLwA1TjDJQIfvyUIfrVQRsg6DDr7r7uk/sD7wTtMIk5ecQtt6K0F8Fng74VUd/q2yH7DHRfcJGshOxTnsCV1xr7+aaNOWhlqzBxvt2IWJyennZMGmLqrcDC8sBUAppUqccnh9UPtVxYWLkb8DsOrF7gmOIYbtGQwesYaNKxPsM0yqLnSswl0gDBK3yhN+mCdykFYE2bEdKMLqzrUlDpLP7/4Wv/simYJkS96md8ojLMyqvxhb23t2dzQE4JYFnWDS4PxvFW0N/QtCQZih6C9xwyLznNJyodwaeFLlilA2tn05BEXXmNcmHjonZx8VKS8KopRL+QhOjhw8erBdHx6t8MlAh01K80RmzbLvs3RoRZvn8O32iC1djkMXhl0XN9DOln61Cffgq9b8ACpnYCdv/Tt3m5o/pKC5IFfUzjW+GemLgVu7u7Jt/VdRn8VUWb0qUcc+V1LLDo5+fnFw0qJWuYJV0s7PUF8BbyOg0Kzt3GZveVvs3LtGtlDvqYaTCIDX7VBatJ4QevuQM+vQPfni19qGYxSy5D9H19nFKzTtP764IDK29TCjx9rndp/nhu0RXqUErUuY+UYTiV2FPdZ+vakiG+6xJkCXNbNsyih6Vf0Fl6X/TUa+kPamk8bwVbbUqBjd/1qf6nbop+vuWtUYbxb+Je5vcGK6tHbU2Au8ViCHRX81w2PKzou2pU539rkJd8bpZr2nW18Ay3eZrK7bXKVbPoW3a51/vEAl2wisGNdPHi+x6Ebc/7yiuLHn24oWvX694cq4ytfML8cN+8rPf2WgolwAYnY4Sw6+CyCNktQcbhbaTPjmpbDFZWXZPqyl78oLQR0iT3K698TiB67YLToehPmF/v2YWfKPhWsbxRV2efaE+EUCxO+hFWaYndAMo96INVSnzGEvJPn4Ptbb9fpY71mPKMVfoImRmjpXChWPRFimp2y0EAm19XwOssidiFIAJTKMjN17A1kSKgkcFiP7dVJ0EIIDRneODelBDIehXKNPDZOxD7+UynIIUMEJr87ro3vIzrUXYXbxTSbjhGEbtggvES54GLo25lx9qLVReiE3lN3/vzg2WyVFiNRsqoJoR+D+vid7NeIyNkj6GKWLztaoXa7WXsnWrd9gDqSDneEKELwxKraqsr/G7xTspuDvvpbW9F3BchLomUKabn38NP9yD0c0/qJAgJkFhdLqx9mVqt6/DvE7ixQPx0IR0SL0RPwL9/4PvpLglCwqR25wWyOTby46vGbo746cIISP2RAnr/nt2XNoS+dZcEIWVG8gyNAzcH/r1SJ++w6Xgr4qcLo2SkD4058u8tepdUaUn8dEEQBEEQBEEQBCGM/wEpVTBjd/bC+AAAAABJRU5ErkJggg==';
+
+        // Mock data on first load - load demo data if localStorage is empty
+        if (links.length === 0) {
+            links = [
+                // Онлайн Образование - 4 ссылки
+                {
+                    id: '1',
+                    title: 'Курс программирования Python',
+                    merchantName: 'Онлайн Школа IT',
+                    amountMode: 'fixed',
+                    fixedAmount: 14900,
+                    description: 'Комплексный онлайн-курс по программированию на Python с нуля до уровня разработчика. Включает практические задания, проекты и сертификат об окончании.',
+                    status: 'ready',
+                    url: 'payment.com/link/1',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: true,
+                    collectPhone: true,
+                    phoneRequired: false,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '2',
+                    title: 'Онлайн-курс английского языка',
+                    merchantName: 'Лингва Академия',
+                    amountMode: 'fixed',
+                    fixedAmount: 8990,
+                    description: 'Интерактивный курс английского языка для всех уровней. Групповые и индивидуальные занятия с носителями языка, доступ к платформе на 6 месяцев.',
+                    status: 'ready',
+                    url: 'payment.com/link/2',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: true,
+                    collectPhone: false,
+                    phoneRequired: false,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '3',
+                    title: 'Подготовка к ЕГЭ по математике',
+                    merchantName: 'Учебный Центр "Отличник"',
+                    amountMode: 'free',
+                    description: 'Индивидуальная подготовка к ЕГЭ по математике. Персональный план обучения, разбор всех типов задач, пробные экзамены и консультации с опытными преподавателями.',
+                    status: 'ready',
+                    url: 'payment.com/link/3',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: true,
+                    collectPhone: true,
+                    phoneRequired: true,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '4',
+                    title: 'Курс дизайна интерфейсов',
+                    merchantName: 'Дизайн Мастерская',
+                    amountMode: 'fixed',
+                    fixedAmount: 12900,
+                    description: 'Профессиональный курс по UI/UX дизайну. Изучение Figma, создание прототипов, работа с типографикой и цветом. Портфолио из 5 реальных проектов.',
+                    status: 'ready',
+                    url: 'payment.com/link/4',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: false,
+                    collectPhone: true,
+                    phoneRequired: false,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date().toISOString()
+                },
+                // Дом и Ремонт - 4 ссылки
+                {
+                    id: '5',
+                    title: 'Консультация дизайнера интерьера',
+                    merchantName: 'Студия "Идеальный Дом"',
+                    amountMode: 'fixed',
+                    fixedAmount: 3500,
+                    description: 'Профессиональная консультация дизайнера по планированию интерьера вашего дома. План расстановки мебели, подбор цветовой схемы и рекомендации по материалам.',
+                    status: 'ready',
+                    url: 'payment.com/link/5',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: true,
+                    collectPhone: true,
+                    phoneRequired: true,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '6',
+                    title: 'Ремонт ванной комнаты',
+                    merchantName: 'Ремонт Профи',
+                    amountMode: 'free',
+                    description: 'Комплексный ремонт ванной комнаты под ключ. Демонтаж старых покрытий, замена сантехники, укладка плитки, установка смесителей. Гарантия 2 года.',
+                    status: 'ready',
+                    url: 'payment.com/link/6',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: true,
+                    collectPhone: true,
+                    phoneRequired: true,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '7',
+                    title: 'Установка кухни',
+                    merchantName: 'Кухни Мастер',
+                    amountMode: 'fixed',
+                    fixedAmount: 12500,
+                    description: 'Установка готовой кухни нашими специалистами. Выезд на замер, профессиональный монтаж мебели, подключение техники и сборка. Бесплатная доставка.',
+                    status: 'ready',
+                    url: 'payment.com/link/7',
+                    qrDataUrl: '',
+                    collectEmail: true,
+                    emailRequired: false,
+                    collectPhone: true,
+                    phoneRequired: true,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+                },
+                {
+                    id: '8',
+                    title: 'Покраска стен',
+                    merchantName: 'Ремонт Быстро',
+                    amountMode: 'free',
+                    description: 'Качественная покраска стен в квартире или доме. Подготовка поверхностей, грунтовка, нанесение краски в 2 слоя. Работаем аккуратно, защищаем мебель.',
+                    status: 'ready',
+                    url: 'payment.com/link/8',
+                    qrDataUrl: '',
+                    collectEmail: false,
+                    emailRequired: false,
+                    collectPhone: true,
+                    phoneRequired: true,
+                    collectOrderDetails: false,
+                    orderDetailsRequired: false,
+                    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+                }
+            ];
+            selectedLinkId = links[0].id;
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('paymentLinks', JSON.stringify(links));
+            if (selectedLinkId) {
+                localStorage.setItem('selectedLinkId', selectedLinkId);
+            }
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substring(2, 15);
+        }
+
+        function openPreview(linkId) {
+            // Сохраняем ID ссылки для предпросмотра
+            window.open(`preview.html?id=${linkId}`, '_blank');
+        }
+
+        function setActiveTab(tab, element) {
+            // Удаляем active класс со всех вкладок первого уровня
+            const firstLevelNav = document.querySelector('nav > div:first-child');
+            if (firstLevelNav) {
+                firstLevelNav.querySelectorAll('.nav-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+            // Добавляем active класс к выбранной вкладке
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+
+        function setActiveSubTab(subTab, element) {
+            // Удаляем active класс со всех вкладок второго уровня
+            const secondLevelNav = document.querySelector('nav > div:last-child');
+            if (secondLevelNav) {
+                secondLevelNav.querySelectorAll('.nav-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            }
+            // Добавляем active класс к выбранной вкладке
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+
+        function setShopTab(tab, element) {
+            // Удаляем активный стиль со всех табов
+            document.querySelectorAll('.nav-tab-item').forEach(btn => {
+                btn.classList.remove('text-gray-900');
+                btn.classList.add('text-gray-500');
+                btn.style.borderBottomColor = 'transparent';
+            });
+            // Добавляем активный стиль к выбранному табу
+            if (element) {
+                element.classList.remove('text-gray-500');
+                element.classList.add('text-gray-900');
+                element.style.borderBottomColor = '#FFDD2D';
+            }
+        }
+
+        function selectLink(id) {
+            selectedLinkId = id;
+            saveState();
+            render();
+        }
+
+        function closeEditing() {
+            closeModal();
+        }
+
+        function openCreateModal() {
+            editingLinkId = null;
+            selectedLinkId = null;
+            // Очищаем временные значения из localStorage при открытии модального окна создания
+            localStorage.removeItem('tempCollectEmail');
+            localStorage.removeItem('tempEmailRequired');
+            localStorage.removeItem('tempCollectPhone');
+            localStorage.removeItem('tempPhoneRequired');
+            localStorage.removeItem('tempCollectOrderDetails');
+            localStorage.removeItem('tempOrderDetailsRequired');
+            const modalOverlay = document.getElementById('modalOverlay');
+            renderCreateModalContent(null);
+            modalOverlay.style.display = 'flex';
+        }
+
+        function openEditModal(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (!link) return;
+            
+            editingLinkId = linkId;
+            selectedLinkId = linkId;
+            
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <div class="p-6">
+                    <div class="mb-6 flex items-center justify-between">
+                        <h2 class="text-2xl font-medium text-black">Редактирование ссылки</h2>
+                        <button onclick="closeModal()" class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100" title="Закрыть">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    ${renderFormFields(link)}
+                </div>
+            `;
+            
+            modalOverlay.style.display = 'flex';
+        }
+
+        function closeModal() {
+            const modalOverlay = document.getElementById('modalOverlay');
+            modalOverlay.style.display = 'none';
+            // Очищаем временные значения из localStorage при закрытии модального окна создания
+            if (editingLinkId === null) {
+                localStorage.removeItem('tempCollectEmail');
+                localStorage.removeItem('tempEmailRequired');
+                localStorage.removeItem('tempCollectPhone');
+                localStorage.removeItem('tempPhoneRequired');
+                localStorage.removeItem('tempCollectOrderDetails');
+                localStorage.removeItem('tempOrderDetailsRequired');
+            }
+            editingLinkId = null;
+            render();
+        }
+
+        function createNewLink() {
+            openCreateModal();
+        }
+
+        function deleteLink(id) {
+            links = links.filter(link => link.id !== id);
+            if (selectedLinkId === id) {
+                selectedLinkId = links.length > 0 ? links[0].id : null;
+            }
+            if (editingLinkId === id) {
+                editingLinkId = null; // Закрываем редактирование при удалении ссылки
+            }
+            saveState();
+            render();
+        }
+
+
+        function renderLinksList() {
+            const container = document.getElementById('linksList');
+            if (links.length === 0) {
+                container.innerHTML = '<div class="col-span-full rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500">Нет созданных ссылок</div>';
+                return;
+            }
+            
+            container.innerHTML = links.map(link => {
+                const actualLink = links.find(l => l.id === link.id) || link;
+                const statusColor = 'bg-green-500';
+                const statusText = 'Принимает платежи';
+                const amountText = actualLink.amountMode === 'fixed' 
+                    ? 'Фиксированно: ' + (actualLink.fixedAmount || 0).toLocaleString('ru-RU') + ' ₽' 
+                    : 'Свободная сумма';
+                let displayUrl = actualLink.url || `payment.com/link/${actualLink.id}`;
+                // Убираем https:// из URL
+                displayUrl = displayUrl.replace(/^https?:\/\//, '');
+                // Обрезаем до 30 символов и добавляем ... если длиннее
+                const truncatedUrl = displayUrl.length > 30 ? displayUrl.substring(0, 30) + '...' : displayUrl;
+                
+                return `
+                    <div class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all cursor-pointer" onclick="openEditModal('${actualLink.id}')">
+                        <!-- Top section: URL and Status -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                <a href="#" onclick="event.preventDefault(); event.stopPropagation(); openPreview('${actualLink.id}'); return false;" 
+                                   class="text-blue-600 hover:text-blue-800 text-sm font-normal hover:underline leading-5" title="${displayUrl}">
+                                    ${truncatedUrl}
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-100">
+                                <div class="w-2 h-2 rounded-full ${statusColor} flex-shrink-0"></div>
+                                <span class="text-xs font-normal text-gray-900 leading-4 whitespace-nowrap">${statusText}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Link name -->
+                        <h3 class="text-2xl font-normal text-gray-900 mb-3 leading-7">${actualLink.title || 'Название ссылки'}</h3>
+                        
+                        <!-- Amount type -->
+                        <p class="text-sm font-normal text-gray-500 leading-5">${amountText}</p>
+                        
+                        <!-- Action buttons on hover -->
+                        <div class="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="event.stopPropagation(); openEditModal('${actualLink.id}');" 
+                                class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm" 
+                                title="Редактировать">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <div class="relative">
+                                <button onclick="event.stopPropagation(); toggleCopyMenu('${actualLink.id}', event);" 
+                                    class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm" 
+                                    title="Копировать ссылку или QR">
+                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </button>
+                                <div id="copyMenu-${actualLink.id}" class="absolute right-0 bottom-full mb-2 hidden bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10 min-w-[180px]">
+                                    <button onclick="event.stopPropagation(); copyLinkUrl('${actualLink.id}'); closeCopyMenu('${actualLink.id}');" 
+                                        class="w-full px-4 py-2 text-left text-sm text-gray-900 hover:bg-gray-50 transition-colors flex items-center gap-2 whitespace-nowrap">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                        Скопировать ссылку
+                                    </button>
+                                    <button onclick="event.stopPropagation(); downloadQR('${actualLink.id}'); closeCopyMenu('${actualLink.id}');" 
+                                        class="w-full px-4 py-2 text-left text-sm text-gray-900 hover:bg-gray-50 transition-colors flex items-center gap-2 border-t border-gray-200 whitespace-nowrap">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        Скачать QR
+                                    </button>
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteLink('${actualLink.id}');" 
+                                class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm" 
+                                title="Удалить">
+                                <svg class="w-4 h-4 text-gray-600 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderEditingForm(link) {
+            // Form is now in modal, so this function is no longer needed
+            // But keeping it for backward compatibility
+            return '';
+        }
+
+        function renderLinkForm() {
+            // Form is now in modal, so this function is no longer needed
+            // But keeping it for backward compatibility
+        }
+
+        function renderFormFields(link) {
+            const title = link ? link.title : '';
+            const merchantName = link ? link.merchantName : 'Онлайн Школа IT';
+            // Определяем режим суммы: сначала из скрытых полей, потом из ссылки, потом из localStorage, потом по умолчанию
+            let amountMode = 'fixed';
+            const hiddenRadio = document.querySelector('input[name="amountMode"]:checked');
+            if (hiddenRadio) {
+                amountMode = hiddenRadio.value;
+            } else if (link) {
+                amountMode = link.amountMode || 'fixed';
+            } else if (typeof Storage !== 'undefined') {
+                const tempMode = localStorage.getItem('tempAmountMode');
+                if (tempMode) {
+                    amountMode = tempMode;
+                }
+            }
+            const fixedAmount = link ? (link.fixedAmount || '') : '';
+            const description = link ? (link.description || '') : '';
+            const collectEmail = link ? (link.collectEmail || false) : (localStorage.getItem('tempCollectEmail') === 'true');
+            const emailRequired = link ? (link.emailRequired || false) : (localStorage.getItem('tempEmailRequired') === 'true');
+            const collectPhone = link ? (link.collectPhone || false) : (localStorage.getItem('tempCollectPhone') === 'true');
+            const phoneRequired = link ? (link.phoneRequired || false) : (localStorage.getItem('tempPhoneRequired') === 'true');
+            const collectOrderDetails = link ? (link.collectOrderDetails || false) : (localStorage.getItem('tempCollectOrderDetails') === 'true');
+            const orderDetailsRequired = link ? (link.orderDetailsRequired || false) : (localStorage.getItem('tempOrderDetailsRequired') === 'true');
+
+            const shops = [
+                // Онлайн образование
+                { value: 'Онлайн Школа IT', label: 'Онлайн Школа IT' },
+                { value: 'Лингва Академия', label: 'Лингва Академия' },
+                { value: 'Учебный Центр "Отличник"', label: 'Учебный Центр "Отличник"' },
+                { value: 'Дизайн Мастерская', label: 'Дизайн Мастерская' },
+                // Дом и ремонт
+                { value: 'Студия "Идеальный Дом"', label: 'Студия "Идеальный Дом"' },
+                { value: 'Ремонт Профи', label: 'Ремонт Профи' },
+                { value: 'Кухни Мастер', label: 'Кухни Мастер' },
+                { value: 'Ремонт Быстро', label: 'Ремонт Быстро' }
+            ];
+
+            // Форматируем фиксированную сумму для отображения
+            const formattedFixedAmount = fixedAmount && fixedAmount > 0 
+                ? formatAmount(fixedAmount.toString()) 
+                : '';
+
+            return `
+                <div class="space-y-5">
+                    <div>
+                        <label class="mb-2 block text-sm font-normal text-black">Название ссылки</label>
+                        <input type="text" id="linkTitle" value="${title}" 
+                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                            placeholder="Введите название ссылки">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-normal text-black">Выбор магазина</label>
+                        <select id="merchantName" 
+                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white transition-colors">
+                            ${shops.map(shop => `
+                                <option value="${shop.value}" ${merchantName === shop.value ? 'selected' : ''}>${shop.label}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-3 block text-sm font-normal text-black">Формат оплаты</label>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="updateAmountMode('fixed')" 
+                                class="flex-1 rounded-xl px-4 py-2.5 text-sm font-normal text-black transition-colors hover:opacity-90 ${
+                                    amountMode === 'fixed' 
+                                        ? '' 
+                                        : 'opacity-60'
+                                }" style="background-color: ${amountMode === 'fixed' ? '#DED0BB' : '#F5F5F5'};">
+                                Фиксированная
+                            </button>
+                            <button type="button" onclick="updateAmountMode('free')" 
+                                class="flex-1 rounded-xl px-4 py-2.5 text-sm font-normal text-black transition-colors hover:opacity-90 ${
+                                    amountMode === 'free' 
+                                        ? '' 
+                                        : 'opacity-60'
+                                }" style="background-color: ${amountMode === 'free' ? '#DED0BB' : '#F5F5F5'};">
+                                Свободная
+                            </button>
+                        </div>
+                    </div>
+                    <div id="fixedAmountField" style="display: ${amountMode === 'fixed' ? 'block' : 'none'};">
+                        <label class="mb-2 block text-sm font-normal text-black">Сумма к оплате</label>
+                        <input type="text" id="fixedAmount" 
+                            value="${formattedFixedAmount}" 
+                            oninput="handleFixedAmountInput(event)"
+                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                            placeholder="0 ₽">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-normal text-black">
+                            Описание заказа
+                            <span class="ml-2 text-xs font-normal text-gray-500">(<span id="descCount">${description.length}</span>/140)</span>
+                        </label>
+                        <textarea id="description" rows="3" maxlength="140" oninput="updateDescCount()"
+                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors resize-none"
+                            placeholder="Введите описание заказа">${description}</textarea>
+                    </div>
+                    <div class="space-y-4 pt-5">
+                        <label class="mb-3 block text-base font-medium text-black">Дополнительные поля</label>
+                        <div class="space-y-4">
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <label class="text-sm font-normal text-black">Собирать email</label>
+                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле email в форму оплаты</p>
+                                    </div>
+                                    <button type="button" onclick="toggleCollectEmail()" 
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
+                                            collectEmail ? '' : 'opacity-50'
+                                        }" style="background-color: ${collectEmail ? '#DED0BB' : '#E5E7EB'};">
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                                            collectEmail ? 'translate-x-6' : 'translate-x-1'
+                                        }"></span>
+                                    </button>
+                                </div>
+                                ${collectEmail ? `
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <label class="text-sm text-black">Обязательное поле</label>
+                                            <button type="button" onclick="toggleEmailRequired()" 
+                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
+                                                    emailRequired ? '' : 'opacity-50'
+                                                }" style="background-color: ${emailRequired ? '#DED0BB' : '#E5E7EB'};">
+                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
+                                                    emailRequired ? 'translate-x-5' : 'translate-x-0.5'
+                                                }"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <label class="text-sm font-normal text-black">Собирать подробности о заказе</label>
+                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле комментария клиента</p>
+                                    </div>
+                                    <button type="button" onclick="toggleCollectOrderDetails()" 
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
+                                            collectOrderDetails ? '' : 'opacity-50'
+                                        }" style="background-color: ${collectOrderDetails ? '#DED0BB' : '#E5E7EB'};">
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                                            collectOrderDetails ? 'translate-x-6' : 'translate-x-1'
+                                        }"></span>
+                                    </button>
+                                </div>
+                                ${collectOrderDetails ? `
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <label class="text-sm text-black">Обязательное поле</label>
+                                            <button type="button" onclick="toggleOrderDetailsRequired()" 
+                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
+                                                    orderDetailsRequired ? '' : 'opacity-50'
+                                                }" style="background-color: ${orderDetailsRequired ? '#DED0BB' : '#E5E7EB'};">
+                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
+                                                    orderDetailsRequired ? 'translate-x-5' : 'translate-x-0.5'
+                                                }"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <label class="text-sm font-normal text-black">Собирать номер телефона</label>
+                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле телефона в форму оплаты</p>
+                                    </div>
+                                    <button type="button" onclick="toggleCollectPhone()" 
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
+                                            collectPhone ? '' : 'opacity-50'
+                                        }" style="background-color: ${collectPhone ? '#DED0BB' : '#E5E7EB'};">
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                                            collectPhone ? 'translate-x-6' : 'translate-x-1'
+                                        }"></span>
+                                    </button>
+                                </div>
+                                ${collectPhone ? `
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <label class="text-sm text-black">Обязательное поле</label>
+                                            <button type="button" onclick="togglePhoneRequired()" 
+                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
+                                                    phoneRequired ? '' : 'opacity-50'
+                                                }" style="background-color: ${phoneRequired ? '#DED0BB' : '#E5E7EB'};">
+                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
+                                                    phoneRequired ? 'translate-x-5' : 'translate-x-0.5'
+                                                }"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${(link && link.qrDataUrl) ? renderLinkActions(link) : ''}
+                    <div class="flex justify-center pt-6 mt-6">
+                        <button onclick="saveDraft()" 
+                            class="rounded-xl px-6 py-2.5 text-sm font-normal text-black transition-colors hover:opacity-90" style="background-color: #DED0BB;">
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getCurrentFormDraft() {
+            const titleEl = document.getElementById('linkTitle');
+            const merchantNameEl = document.getElementById('merchantName');
+            const amountModeEl = document.querySelector('input[name="amountMode"]:checked');
+            const fixedAmountEl = document.getElementById('fixedAmount');
+            const descriptionEl = document.getElementById('description');
+
+            let amountMode = 'fixed';
+            if (amountModeEl) {
+                amountMode = amountModeEl.value;
+            } else if (typeof Storage !== 'undefined') {
+                const tempMode = localStorage.getItem('tempAmountMode');
+                if (tempMode) {
+                    amountMode = tempMode;
+                }
+            }
+
+            const fixedAmountValue = fixedAmountEl ? parseAmount(fixedAmountEl.value || '0') : 0;
+
+            const collectEmail = localStorage.getItem('tempCollectEmail') === 'true';
+            const emailRequired = localStorage.getItem('tempEmailRequired') === 'true';
+            const collectPhone = localStorage.getItem('tempCollectPhone') === 'true';
+            const phoneRequired = localStorage.getItem('tempPhoneRequired') === 'true';
+            const collectOrderDetails = localStorage.getItem('tempCollectOrderDetails') === 'true';
+            const orderDetailsRequired = localStorage.getItem('tempOrderDetailsRequired') === 'true';
+
+            return {
+                title: titleEl ? titleEl.value : '',
+                merchantName: merchantNameEl ? merchantNameEl.value : 'Онлайн Школа IT',
+                amountMode,
+                fixedAmount: amountMode === 'fixed' ? fixedAmountValue : undefined,
+                description: descriptionEl ? descriptionEl.value : '',
+                collectEmail,
+                emailRequired: collectEmail ? emailRequired : false,
+                collectPhone,
+                phoneRequired: collectPhone ? phoneRequired : false,
+                collectOrderDetails,
+                orderDetailsRequired: collectOrderDetails ? orderDetailsRequired : false
+            };
+        }
+
+        function renderCreateModalContent(draft) {
+            const modalContent = document.getElementById('modalContent');
+            if (!modalContent) return;
+            modalContent.innerHTML = `
+                <div class="p-6">
+                    <div class="mb-6 flex items-center justify-between">
+                        <h2 class="text-2xl font-medium text-black">Создать платёжную ссылку</h2>
+                        <button onclick="closeModal()" class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100" title="Закрыть">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    ${renderFormFields(draft || null)}
+                </div>
+            `;
+        }
+
+        function renderLinkActions(link) {
+            // Возвращаем блок только если есть QR-код
+            if (!link.qrDataUrl) {
+                return '';
+            }
+            
+            return `
+                <div class="mt-4 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-black">QR-код:</span>
+                            <button onclick="downloadQR('${link.id}')" 
+                                class="rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-600">
+                                Скачать QR
+                            </button>
+                        </div>
+                        <div class="flex justify-center rounded bg-white p-4">
+                            <img src="${link.qrDataUrl}" alt="QR Code" class="h-32 w-32">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateAmountMode(mode) {
+            // Получаем ID текущей ссылки
+            const linkId = editingLinkId || selectedLinkId;
+            
+            // Обновляем объект ссылки напрямую, если ссылка существует
+            if (linkId) {
+                const link = links.find(l => l.id === linkId);
+                if (link) {
+                    link.amountMode = mode;
+                    // Если переключаем на свободную сумму, удаляем фиксированную сумму
+                    if (mode === 'free') {
+                        link.fixedAmount = undefined;
+                    }
+                    link.updatedAt = new Date().toISOString();
+                    saveState();
+                }
+            } else {
+                // Для новой ссылки сохраняем режим в localStorage
+                if (typeof Storage !== 'undefined') {
+                    localStorage.setItem('tempAmountMode', mode);
+                }
+            }
+            
+            // Обновляем скрытые radio-кнопки для формы
+            const hiddenRadios = document.querySelectorAll('input[name="amountMode"]');
+            if (hiddenRadios.length > 0) {
+                hiddenRadios.forEach(radio => {
+                    radio.checked = radio.value === mode;
+                });
+            } else {
+                // Создаем скрытые radio-кнопки для обеих опций
+                ['fixed', 'free'].forEach(value => {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'radio';
+                    hiddenInput.name = 'amountMode';
+                    hiddenInput.value = value;
+                    hiddenInput.checked = value === mode;
+                    hiddenInput.style.display = 'none';
+                    document.body.appendChild(hiddenInput);
+                });
+            }
+            
+            // Визуально обновляем кнопки напрямую
+            const buttons = document.querySelectorAll('button[onclick*="updateAmountMode"]');
+            buttons.forEach(button => {
+                const buttonMode = button.getAttribute('onclick').includes("'fixed'") ? 'fixed' : 'free';
+                if (buttonMode === mode) {
+                    button.style.backgroundColor = '#DED0BB';
+                    button.classList.remove('opacity-60');
+                } else {
+                    button.style.backgroundColor = '#F5F5F5';
+                    button.classList.add('opacity-60');
+                }
+            });
+            
+            // Показываем/скрываем поле суммы напрямую (для мгновенной обратной связи)
+            const fixedAmountField = document.getElementById('fixedAmountField');
+            if (fixedAmountField) {
+                fixedAmountField.style.display = mode === 'fixed' ? 'block' : 'none';
+            }
+            
+            // Обновляем отображение формы для синхронизации всех элементов
+            renderLinksList();
+        }
+
+        function handleFixedAmountInput(event) {
+            const input = event.target;
+            const cursorPosition = input.selectionStart;
+            const oldValue = input.value;
+            const numericValue = oldValue.replace(/\D/g, '');
+            
+            // Сохраняем количество цифр до курсора
+            const beforeCursor = oldValue.substring(0, cursorPosition);
+            const digitsBeforeCursor = beforeCursor.replace(/\D/g, '').length;
+            
+            // Обновляем значение с форматированием
+            const formatted = formatAmount(numericValue);
+            input.value = formatted;
+            
+            // Вычисляем новую позицию курсора
+            let newCursorPosition = 0;
+            let digitsCount = 0;
+            for (let i = 0; i < formatted.length; i++) {
+                if (/\d/.test(formatted[i])) {
+                    digitsCount++;
+                    if (digitsCount === digitsBeforeCursor) {
+                        newCursorPosition = i + 1;
+                        break;
+                    }
+                }
+            }
+            // Если курсор был в конце, ставим его в конец
+            if (digitsBeforeCursor >= numericValue.length) {
+                newCursorPosition = formatted.length;
+            }
+            
+            // Восстанавливаем позицию курсора после следующего кадра
+            setTimeout(() => {
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+            }, 0);
+        }
+
+        function toggleCollectEmail() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                draft.collectEmail = !draft.collectEmail;
+                if (!draft.collectEmail) {
+                    draft.emailRequired = false;
+                }
+                localStorage.setItem('tempCollectEmail', draft.collectEmail.toString());
+                localStorage.setItem('tempEmailRequired', draft.emailRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link) {
+                link.collectEmail = !link.collectEmail;
+                if (!link.collectEmail) {
+                    link.emailRequired = false;
+                }
+                saveState();
+                renderLinksList();
+                // Обновляем модальное окно, если оно открыто
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function toggleEmailRequired() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                if (!draft.collectEmail) return;
+                draft.emailRequired = !draft.emailRequired;
+                localStorage.setItem('tempEmailRequired', draft.emailRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link && link.collectEmail) {
+                link.emailRequired = !link.emailRequired;
+                saveState();
+                renderLinksList();
+                // Обновляем модальное окно, если оно открыто
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function toggleCollectPhone() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                draft.collectPhone = !draft.collectPhone;
+                if (!draft.collectPhone) {
+                    draft.phoneRequired = false;
+                }
+                localStorage.setItem('tempCollectPhone', draft.collectPhone.toString());
+                localStorage.setItem('tempPhoneRequired', draft.phoneRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link) {
+                link.collectPhone = !link.collectPhone;
+                if (!link.collectPhone) {
+                    link.phoneRequired = false;
+                }
+                saveState();
+                renderLinksList();
+                // Обновляем модальное окно, если оно открыто
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function togglePhoneRequired() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                if (!draft.collectPhone) return;
+                draft.phoneRequired = !draft.phoneRequired;
+                localStorage.setItem('tempPhoneRequired', draft.phoneRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link && link.collectPhone) {
+                link.phoneRequired = !link.phoneRequired;
+                saveState();
+                renderLinksList();
+                // Обновляем модальное окно, если оно открыто
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function toggleCollectOrderDetails() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                draft.collectOrderDetails = !draft.collectOrderDetails;
+                if (!draft.collectOrderDetails) {
+                    draft.orderDetailsRequired = false;
+                }
+                localStorage.setItem('tempCollectOrderDetails', draft.collectOrderDetails.toString());
+                localStorage.setItem('tempOrderDetailsRequired', draft.orderDetailsRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link) {
+                link.collectOrderDetails = !link.collectOrderDetails;
+                if (!link.collectOrderDetails) {
+                    link.orderDetailsRequired = false;
+                }
+                saveState();
+                renderLinksList();
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function toggleOrderDetailsRequired() {
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                const draft = getCurrentFormDraft();
+                if (!draft.collectOrderDetails) return;
+                draft.orderDetailsRequired = !draft.orderDetailsRequired;
+                localStorage.setItem('tempOrderDetailsRequired', draft.orderDetailsRequired.toString());
+                renderCreateModalContent(draft);
+                return;
+            }
+            const link = links.find(l => l.id === linkId);
+            if (link && link.collectOrderDetails) {
+                link.orderDetailsRequired = !link.orderDetailsRequired;
+                saveState();
+                renderLinksList();
+                if (editingLinkId === linkId) {
+                    openEditModal(linkId);
+                }
+            }
+        }
+
+        function updateDescCount() {
+            const desc = document.getElementById('description').value;
+            document.getElementById('descCount').textContent = desc.length;
+        }
+
+        function saveDraft() {
+            try {
+                const titleEl = document.getElementById('linkTitle');
+                const merchantNameEl = document.getElementById('merchantName');
+                const amountModeEl = document.querySelector('input[name="amountMode"]:checked');
+                const fixedAmountEl = document.getElementById('fixedAmount');
+                const descriptionEl = document.getElementById('description');
+                const collectEmailEl = document.getElementById('collectEmail');
+                const emailRequiredEl = document.getElementById('emailRequired');
+                const collectPhoneEl = document.getElementById('collectPhone');
+                const phoneRequiredEl = document.getElementById('phoneRequired');
+
+                if (!titleEl || !merchantNameEl) {
+                    console.error('Form elements not found');
+                    return;
+                }
+
+                // Получаем режим суммы из скрытых radio-кнопок или из объекта ссылки
+                let amountMode = 'fixed';
+                if (amountModeEl) {
+                    amountMode = amountModeEl.value;
+                } else {
+                    // Если скрытых полей нет, пытаемся получить из ссылки или localStorage
+                    const linkId = editingLinkId || selectedLinkId;
+                    if (linkId) {
+                        const link = links.find(l => l.id === linkId);
+                        if (link) {
+                            amountMode = link.amountMode;
+                        }
+                    } else if (typeof Storage !== 'undefined') {
+                        const tempMode = localStorage.getItem('tempAmountMode');
+                        if (tempMode) {
+                            amountMode = tempMode;
+                        }
+                    }
+                }
+                const collectEmail = collectEmailEl ? collectEmailEl.checked : false;
+                const emailRequired = collectEmail && emailRequiredEl ? emailRequiredEl.checked : false;
+                const collectPhone = collectPhoneEl ? collectPhoneEl.checked : false;
+                const phoneRequired = collectPhone && phoneRequiredEl ? phoneRequiredEl.checked : false;
+
+                // Парсим фиксированную сумму из отформатированного значения
+                let fixedAmountValue = 0;
+                if (amountMode === 'fixed' && fixedAmountEl) {
+                    const formattedValue = fixedAmountEl.value || '';
+                    fixedAmountValue = parseAmount(formattedValue);
+                }
+
+                // Получаем значения дополнительных полей из состояния ссылки или localStorage
+                const linkId = editingLinkId || selectedLinkId;
+                const link = linkId ? links.find(l => l.id === linkId) : null;
+                let collectEmailValue, emailRequiredValue, collectPhoneValue, phoneRequiredValue, collectOrderDetailsValue, orderDetailsRequiredValue;
+                if (link) {
+                    collectEmailValue = link.collectEmail || false;
+                    emailRequiredValue = link.emailRequired || false;
+                    collectPhoneValue = link.collectPhone || false;
+                    phoneRequiredValue = link.phoneRequired || false;
+                    collectOrderDetailsValue = link.collectOrderDetails || false;
+                    orderDetailsRequiredValue = link.orderDetailsRequired || false;
+                } else {
+                    // При создании новой ссылки читаем из localStorage
+                    collectEmailValue = localStorage.getItem('tempCollectEmail') === 'true';
+                    emailRequiredValue = localStorage.getItem('tempEmailRequired') === 'true';
+                    collectPhoneValue = localStorage.getItem('tempCollectPhone') === 'true';
+                    phoneRequiredValue = localStorage.getItem('tempPhoneRequired') === 'true';
+                    collectOrderDetailsValue = localStorage.getItem('tempCollectOrderDetails') === 'true';
+                    orderDetailsRequiredValue = localStorage.getItem('tempOrderDetailsRequired') === 'true';
+                }
+
+                const linkData = {
+                    title: titleEl.value || 'Без названия',
+                    merchantName: merchantNameEl.value || 'Онлайн Школа IT',
+                    amountMode: amountMode || 'fixed',
+                    fixedAmount: amountMode === 'fixed' && fixedAmountValue > 0 ? fixedAmountValue : undefined,
+                    description: descriptionEl ? (descriptionEl.value || undefined) : undefined,
+                    collectEmail: collectEmailValue,
+                    emailRequired: emailRequiredValue,
+                    collectPhone: collectPhoneValue,
+                    phoneRequired: phoneRequiredValue,
+                    collectOrderDetails: collectOrderDetailsValue,
+                    orderDetailsRequired: orderDetailsRequiredValue,
+                    status: 'draft'
+                };
+                
+                if (linkId) {
+                    const link = links.find(l => l.id === linkId);
+                    if (link) {
+                        // При обновлении существующей ссылки сохраняем URL, если он уже был
+                        const existingUrl = link.url;
+                        Object.assign(link, linkData, { 
+                            updatedAt: new Date().toISOString(),
+                            url: existingUrl || link.url // Сохраняем существующий URL
+                        });
+                        // Обновляем selectedLinkId, если он не был установлен
+                        if (!selectedLinkId) {
+                            selectedLinkId = linkId;
+                        }
+                    }
+                } else {
+                    // Создаем новую ссылку - генерируем URL сразу и устанавливаем статус 'ready'
+                    const newLinkId = generateId();
+                    const newLink = {
+                        id: newLinkId,
+                        title: linkData.title,
+                        merchantName: linkData.merchantName,
+                        amountMode: linkData.amountMode,
+                        fixedAmount: linkData.fixedAmount,
+                        description: linkData.description,
+                        collectEmail: linkData.collectEmail,
+                        emailRequired: linkData.emailRequired,
+                        collectPhone: linkData.collectPhone,
+                        phoneRequired: linkData.phoneRequired,
+                        collectOrderDetails: linkData.collectOrderDetails,
+                        orderDetailsRequired: linkData.orderDetailsRequired,
+                        status: 'ready', // Новая ссылка сразу становится опубликованной
+                        url: `payment.com/link/${newLinkId}`, // Генерируем URL сразу с тем же ID
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    links.push(newLink);
+                    selectedLinkId = newLink.id;
+                    console.log('Новая ссылка создана:', newLink);
+                }
+                
+                // Закрываем модальное окно после сохранения
+                closeModal();
+                
+                saveState();
+                render();
+                
+                // Логируем успешное сохранение
+                console.log('Ссылка успешно сохранена, selectedLinkId:', selectedLinkId);
+                console.log('Всего ссылок в массиве:', links.length);
+            } catch (error) {
+                console.error('Error saving draft:', error);
+            }
+        }
+
+        function generateLink() {
+            // Эта функция больше не нужна, так как ссылка генерируется автоматически
+            // Оставляем для обратной совместимости, но она просто сохраняет изменения
+            saveDraft();
+        }
+
+        async function generateQRForCard(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (!link) {
+                console.error('Link not found');
+                return;
+            }
+            
+            // Если URL нет, генерируем его
+            if (!link.url) {
+                link.url = `payment.com/link/${link.id}`;
+                link.status = 'ready';
+                link.updatedAt = new Date().toISOString();
+                saveState();
+            }
+            
+            // Генерируем QR код
+            await generateQRForLink(link);
+            // Обновляем список, чтобы показать QR код
+            renderLinksList();
+            // Показываем уведомление
+            showNotification('QR‑код скачан');
+        }
+
+        async function generateQR() {
+            // Сохраняем изменения перед генерацией QR
+            saveDraft();
+            
+            // Небольшая задержка, чтобы данные успели сохраниться
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Используем editingLinkId, если он установлен, иначе selectedLinkId
+            const linkId = editingLinkId || selectedLinkId;
+            if (!linkId) {
+                console.error('Link not found. Please save the link first.');
+                return;
+            }
+            
+            const link = links.find(l => l.id === linkId);
+            if (!link) {
+                console.error('Link not found. Please save the link first.');
+                return;
+            }
+            
+            // Если URL нет, генерируем его
+            if (!link.url) {
+                link.url = `payment.com/link/${link.id}`;
+                link.status = 'ready';
+                link.updatedAt = new Date().toISOString();
+                saveState();
+            }
+            
+            await generateQRForLink(link);
+        }
+
+        async function generateQRForLink(link) {
+            if (!link || !link.url) {
+                console.error('Link or URL not found');
+                return;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                await new Promise((resolve, reject) => {
+                    QRCode.toCanvas(canvas, link.url, {
+                        width: 256,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, (error) => {
+                        if (error) {
+                            console.error('QR code generation error:', error);
+                            reject(error);
+                            return;
+                        }
+                        resolve();
+                    });
+                });
+                link.qrDataUrl = canvas.toDataURL('image/png');
+                link.status = 'ready'; // Устанавливаем статус "Опубликована" при генерации QR
+                link.updatedAt = new Date().toISOString();
+                console.log('QR-код сгенерирован для ссылки:', link.id, 'qrDataUrl:', link.qrDataUrl ? 'установлен' : 'не установлен');
+                saveState();
+                // Обновляем список ссылок, чтобы форма редактирования обновилась и показала QR-код
+                renderLinksList();
+                console.log('QR-код должен отображаться в форме редактирования');
+            } catch (error) {
+                console.error('Error generating QR:', error);
+            }
+        }
+
+        function copyUrl(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (link && link.url) {
+                navigator.clipboard.writeText(link.url).then(() => {
+                    console.log('URL скопирован в буфер обмена');
+                }).catch(() => {
+                    console.error('Не удалось скопировать URL');
+                });
+            }
+        }
+
+        function drawQRPlaceholder(ctx, x, y, size) {
+            // Рисуем простой QR-код-заглушку (паттерн квадратов)
+            const moduleSize = size / 23; // 23x23 модулей
+            ctx.fillStyle = '#000000';
+            
+            // Паттерн, имитирующий QR-код
+            const pattern = [
+                [1,1,1,1,1,1,1,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,0,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,0,1,1,1,1,1,0,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,1,1,0,0,0,1,1,0,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,1,0,1,1,1,0,1,0,1,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+                [0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+                [1,1,0,1,1,0,1,1,0,1,0,0,0,1,0,1,1,0,1,1,0,1,1],
+                [0,0,1,1,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1,1,0,0],
+                [1,0,0,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1,0,0,1],
+                [0,1,1,0,1,0,1,0,1,1,0,1,0,1,1,0,1,0,1,0,1,1,0],
+                [1,1,0,0,0,1,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,1],
+                [0,0,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,0,0],
+                [1,1,0,0,1,0,1,0,0,0,1,1,1,1,0,0,0,1,0,1,0,0,1],
+                [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+                [1,1,1,1,1,1,1,0,1,1,0,1,0,1,1,0,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,0,0,1,1,1,1,0,0,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,1,1,0,0,0,0,1,1,0,1,0,1,1,1,0],
+                [1,0,1,1,1,0,1,0,0,1,1,1,1,1,1,0,0,1,0,1,1,1,0],
+                [1,0,1,1,1,0,1,0,1,0,0,0,0,0,0,1,0,1,0,1,1,1,0],
+                [1,0,0,0,0,0,1,0,1,1,1,0,0,0,1,1,1,0,1,0,0,0,0],
+                [1,1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,0,0,1,1,1,1,1]
+            ];
+            
+            for (let row = 0; row < pattern.length; row++) {
+                for (let col = 0; col < pattern[row].length; col++) {
+                    if (pattern[row][col] === 1) {
+                        ctx.fillRect(x + col * moduleSize, y + row * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+        }
+
+        async function downloadQR(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (!link) {
+                console.error('Link not found:', linkId);
+                return;
+            }
+            
+            try {
+                // Размеры баннера: 800x1200px (вертикальный)
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 1200;
+                const ctx = canvas.getContext('2d');
+                
+                // Верхняя часть - светло-бежевый фон (2/3 высоты = 800px)
+                const beigeColor = '#F5F5DC';
+                ctx.fillStyle = beigeColor;
+                ctx.fillRect(0, 0, 800, 800);
+                
+                // QR код в белом квадрате с закругленными углами (центр верхней части)
+                const qrSize = 400;
+                const qrX = (800 - qrSize) / 2;
+                const qrY = 320;
+                
+                // Текст "Сканируй и плати" - большой, жирный, черный (над QR кодом)
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 64px system-ui, -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText('Сканируй и плати', 400, 80);
+                
+                // Текст "В приложении своего банка" - меньший, обычный, черный
+                ctx.font = 'normal 28px system-ui, -apple-system, sans-serif';
+                ctx.fillText('В приложении своего банка', 400, 160);
+                
+                // Рисуем белый квадрат с закругленными углами для QR кода
+                ctx.fillStyle = '#FFFFFF';
+                const cornerRadius = 20;
+                ctx.beginPath();
+                ctx.moveTo(qrX + cornerRadius, qrY);
+                ctx.lineTo(qrX + qrSize - cornerRadius, qrY);
+                ctx.quadraticCurveTo(qrX + qrSize, qrY, qrX + qrSize, qrY + cornerRadius);
+                ctx.lineTo(qrX + qrSize, qrY + qrSize - cornerRadius);
+                ctx.quadraticCurveTo(qrX + qrSize, qrY + qrSize, qrX + qrSize - cornerRadius, qrY + qrSize);
+                ctx.lineTo(qrX + cornerRadius, qrY + qrSize);
+                ctx.quadraticCurveTo(qrX, qrY + qrSize, qrX, qrY + qrSize - cornerRadius);
+                ctx.lineTo(qrX, qrY + cornerRadius);
+                ctx.quadraticCurveTo(qrX, qrY, qrX + cornerRadius, qrY);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Рисуем QR-код-заглушку
+                drawQRPlaceholder(ctx, qrX, qrY, qrSize);
+                
+                // Нижняя часть - желтый фон (1/3 высоты = 400px)
+                const yellowColor = '#FFDD2D';
+                ctx.fillStyle = yellowColor;
+                ctx.fillRect(0, 800, 800, 400);
+                
+                // Загружаем логотип Т-Банка
+                const logoImg = new Image();
+                await new Promise((resolve, reject) => {
+                    logoImg.onload = resolve;
+                    logoImg.onerror = reject;
+                    logoImg.src = tBankLogoBase64;
+                });
+                
+                // Рисуем логотип по центру нижней части
+                const logoHeight = 120;
+                const logoAspectRatio = logoImg.width / logoImg.height;
+                const logoWidth = logoHeight * logoAspectRatio;
+                const logoX = (800 - logoWidth) / 2;
+                const logoY = 800 + (400 - logoHeight) / 2;
+                ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+                
+                // Конвертируем canvas в PNG и скачиваем
+                const dataUrl = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `qr-banner-${link.id || 'payment'}.png`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                }, 100);
+                showNotification('QR-код скачан');
+                
+            } catch (error) {
+                console.error('Failed to generate QR banner:', error);
+                showNotification('Ошибка при генерации QR-кода');
+            }
+        }
+
+        function toggleCopyMenu(linkId, event) {
+            event.stopPropagation();
+            // Закрываем все другие открытые меню
+            document.querySelectorAll('[id^="copyMenu-"]').forEach(menu => {
+                if (menu.id !== `copyMenu-${linkId}`) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            const menu = document.getElementById(`copyMenu-${linkId}`);
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        function closeCopyMenu(linkId) {
+            const menu = document.getElementById(`copyMenu-${linkId}`);
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+        }
+
+        // Закрываем меню при клике вне его
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[id^="copyMenu-"]') && !event.target.closest('button[onclick*="toggleCopyMenu"]')) {
+                document.querySelectorAll('[id^="copyMenu-"]').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+
+        function copyLinkUrl(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (link && link.url) {
+                navigator.clipboard.writeText(link.url).then(() => {
+                    showNotification('Ссылка скопирована');
+                }).catch(() => {
+                    console.error('Не удалось скопировать URL');
+                });
+            } else if (link) {
+                console.warn('Ссылка еще не сгенерирована. Нажмите кнопку "Ссылка" для генерации ссылки');
+            }
+        }
+
+        function showNotification(message) {
+            // Удаляем существующие уведомления
+            const existingNotifications = document.querySelectorAll('.notification-toast');
+            existingNotifications.forEach(notif => {
+                notif.classList.add('hiding');
+                setTimeout(() => notif.remove(), 300);
+            });
+
+            // Создаем новое уведомление
+            const notification = document.createElement('div');
+            notification.className = 'notification-toast';
+            
+            // Генерируем уникальный ID для градиента, чтобы избежать конфликтов
+            const gradientId = 'checkGradient_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Иконка галочки из Figma (комбинированная из фона и галочки)
+            const checkIcon = `
+                <svg class="notification-toast-icon" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="11" fill="url(#${gradientId})"/>
+                    <path d="M6 11L9.5 14.5L16 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs>
+                        <linearGradient id="${gradientId}" x1="4" y1="4" x2="18" y2="18" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#0CBC37"/>
+                            <stop offset="1" stop-color="#0CBC37" stop-opacity="0.65"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            `;
+            
+            // Иконка крестика (встроенный SVG вместо файла)
+            const closeIcon = `
+                <svg class="notification-toast-close-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8.02176 9.43677L12.0003 13.4152L13.4145 12.001L9.43599 8.02258L13.4586 4.00014L12.0443 2.58594L8.02176 6.60838L3.99919 2.58594L2.58496 4.00013L6.60752 8.02258L2.58701 12.043L4.00124 13.4572L8.02176 9.43677Z" fill="rgba(0, 0, 0, 0.8)"/>
+                </svg>
+            `;
+            
+            notification.innerHTML = `
+                <div class="notification-toast-content">
+                    <span class="notification-toast-text">${message}</span>
+                    <div class="notification-toast-close" onclick="this.closest('.notification-toast').classList.add('hiding'); setTimeout(() => this.closest('.notification-toast')?.remove(), 300);">
+                        ${closeIcon}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Автоматически скрываем через 3 секунды
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.add('hiding');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }
+
+
+        async function downloadQRPDF(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (!link) return;
+
+            try {
+                // Если QR еще не сгенерирован, генерируем его
+                if (!link.qrDataUrl && link.url) {
+                    await generateQRForLink(link);
+                }
+
+                if (!link.qrDataUrl) {
+                    console.warn('QR-код не найден. Сначала сгенерируйте QR-код.');
+                    return;
+                }
+
+                // Создаем PDF с QR-кодом
+                if (typeof window.jspdf !== 'undefined') {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    // Добавляем заголовок
+                    doc.setFontSize(16);
+                    doc.text(link.title || 'Платёжная ссылка', 105, 20, { align: 'center' });
+                    
+                    // Добавляем информацию о продавце
+                    doc.setFontSize(12);
+                    doc.text('Продавец: ' + link.merchantName, 105, 30, { align: 'center' });
+                    
+                    if (link.description) {
+                        doc.text(link.description, 105, 40, { align: 'center', maxWidth: 180 });
+                    }
+                    
+                    // Добавляем QR-код
+                    const img = new Image();
+                    img.src = link.qrDataUrl;
+                    
+                    await new Promise((resolve) => {
+                        img.onload = () => {
+                            const qrSize = 80;
+                            const x = (210 - qrSize) / 2; // Центрируем на A4 (210mm ширина)
+                            const y = 60;
+                            doc.addImage(img, 'PNG', x, y, qrSize, qrSize);
+                            
+                            // Добавляем URL под QR
+                            doc.setFontSize(10);
+                            const urlY = y + qrSize + 10;
+                            doc.text('URL: ' + link.url, 105, urlY, { align: 'center', maxWidth: 190 });
+                            
+                            // Сохраняем PDF
+                            doc.save(`qr-${link.id || 'payment'}.pdf`);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            console.error('Ошибка при загрузке QR-кода');
+                            resolve();
+                        };
+                    });
+                } else {
+                    // Fallback: скачиваем как PNG
+                    downloadQR(linkId);
+                }
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                // Fallback: скачиваем как PNG
+                if (link.qrDataUrl) {
+                    downloadQR(linkId);
+                }
+            }
+        }
+
+
+        function formatAmount(value) {
+            // Удаляем все нецифровые символы
+            const numericValue = value.toString().replace(/\D/g, '');
+            // Форматируем с пробелами для тысяч
+            if (numericValue === '') return '';
+            const formatted = parseInt(numericValue, 10).toLocaleString('ru-RU');
+            return formatted + ' ₽';
+        }
+
+        function parseAmount(formattedValue) {
+            // Удаляем все нецифровые символы и возвращаем число
+            const numericValue = formattedValue.toString().replace(/\D/g, '');
+            return numericValue === '' ? 0 : parseInt(numericValue, 10);
+        }
+
+        function handleAmountInput(event) {
+            const input = event.target;
+            const cursorPosition = input.selectionStart;
+            const oldValue = input.value;
+            const numericValue = oldValue.replace(/\D/g, '');
+            
+            // Сохраняем количество цифр до курсора
+            const beforeCursor = oldValue.substring(0, cursorPosition);
+            const digitsBeforeCursor = beforeCursor.replace(/\D/g, '').length;
+            
+            // Обновляем значение с форматированием
+            const formatted = formatAmount(numericValue);
+            input.value = formatted;
+            
+            // Вычисляем новую позицию курсора
+            let newCursorPosition = 0;
+            let digitsCount = 0;
+            for (let i = 0; i < formatted.length; i++) {
+                if (/\d/.test(formatted[i])) {
+                    digitsCount++;
+                    if (digitsCount === digitsBeforeCursor) {
+                        newCursorPosition = i + 1;
+                        break;
+                    }
+                }
+            }
+            // Если курсор был в конце, ставим его в конец
+            if (digitsBeforeCursor >= numericValue.length) {
+                newCursorPosition = formatted.length;
+            }
+            
+            // Восстанавливаем позицию курсора после следующего кадра
+            setTimeout(() => {
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+            }, 0);
+        }
+
+        function handleCollectEmailChange() {
+            // Перерисовываем форму, чтобы показать/скрыть настройку обязательности
+            renderLinksList();
+        }
+
+        function handleCollectPhoneChange() {
+            // Перерисовываем форму, чтобы показать/скрыть настройку обязательности
+            renderLinksList();
+        }
+
+
+        function render() {
+            renderLinksList();
+            renderLinkForm();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+        });
+    </script>
+</body>
+</html>
