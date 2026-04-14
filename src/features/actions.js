@@ -804,7 +804,7 @@
         function switchSidebarBannerSlide(index) {
             const slides = document.querySelectorAll('.sidebar-banner-slide');
             const dots = document.querySelectorAll('.sidebar-banner-dot');
-            if (!slides.length || !dots.length) {
+            if (!slides.length) {
                 return;
             }
             const total = slides.length;
@@ -812,9 +812,11 @@
             slides.forEach((slide, slideIndex) => {
                 slide.classList.toggle('is-active', slideIndex === sidebarBannerCurrentSlide);
             });
-            dots.forEach((dot, dotIndex) => {
-                dot.classList.toggle('is-active', dotIndex === sidebarBannerCurrentSlide);
-            });
+            if (dots.length) {
+                dots.forEach((dot, dotIndex) => {
+                    dot.classList.toggle('is-active', dotIndex === sidebarBannerCurrentSlide);
+                });
+            }
         }
 
         function initSidebarBannerCarousel() {
@@ -822,9 +824,14 @@
             if (!carousel) {
                 return;
             }
+            const slides = carousel.querySelectorAll('.sidebar-banner-slide');
             switchSidebarBannerSlide(0);
             if (sidebarBannerTimer) {
                 clearInterval(sidebarBannerTimer);
+                sidebarBannerTimer = null;
+            }
+            if (slides.length <= 1) {
+                return;
             }
             sidebarBannerTimer = setInterval(() => {
                 switchSidebarBannerSlide(sidebarBannerCurrentSlide + 1);
