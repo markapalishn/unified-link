@@ -320,13 +320,13 @@
                     <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('operations', this)">
                         Операции
                     </button>
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('accounts', this)">
-                        Счета
+                    <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('accounts', this)">
+                        Платежные ссылки
                     </button>
                     <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('reimbursement', this)">
                         Возмещение
                     </button>
-                    <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('shops', this)">
+                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('shops', this)">
                         Магазины
                     </button>
                     <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('blacklist', this)">
@@ -342,27 +342,50 @@
             <aside class="w-full border-b border-gray-200 bg-transparent" style="height: calc(100vh - 128px); overflow-y: auto;">
                 <div class="p-4 md:p-6">
                     <div class="mb-6">
-                        <div class="mb-6 flex items-center justify-between">
-                            <h2 class="text-[36px] font-medium text-gray-900 leading-[44px]">Магазины</h2>
+                        <div class="mt-[50px] flex items-center justify-between">
+                            <h2 class="text-[36px] font-medium text-gray-900 leading-[44px]">Платежные ссылки</h2>
                             <button onclick="openCreateModal()" class="rounded-xl px-4 py-2.5 text-sm font-normal text-gray-900 transition-colors hover:opacity-90" style="background-color: #FFDD2D;">
                                 Создать ссылку
                             </button>
                         </div>
-                        <!-- Tabs -->
-                        <div class="flex items-center gap-6 mb-6 border-b border-gray-200 pb-0 overflow-x-auto scrollbar-hide">
-                            <div class="flex items-center gap-6 min-w-max">
-                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-500 border-b-2 border-transparent transition-colors hover:text-gray-900 whitespace-nowrap flex-shrink-0" style="font-size: 15px;" onclick="setShopTab('online', this)">
-                                    Интернет-магазины
-                                </button>
-                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-500 border-b-2 border-transparent transition-colors hover:text-gray-900 whitespace-nowrap flex-shrink-0" style="font-size: 15px;" onclick="setShopTab('invoicing', this)">
-                                    Выставление счетов
-                                </button>
-                                <button class="nav-tab-item px-0 py-3 font-normal text-gray-900 border-b-2 transition-colors whitespace-nowrap flex-shrink-0" style="border-bottom-color: #FFDD2D; font-size: 15px;" onclick="setShopTab('reusable', this)">
-                                    Многоразовая ссылка
-                                </button>
+                        <div class="mt-[20px] h-px w-full bg-gray-200"></div>
+                        <div class="mt-[20px] mb-6 w-full">
+                            <div class="flex w-full items-center gap-3">
+                                <div class="relative w-[220px]">
+                                    <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                    <select id="searchMode" onchange="handleSearchChange()" class="w-full appearance-none rounded-lg border border-gray-200 bg-white py-2.5 pl-3 pr-10 text-[15px] text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                                        <option value="merchant">По магазину</option>
+                                        <option value="title">По названию</option>
+                                    </select>
+                                </div>
+                                <input id="searchInput" type="text" oninput="handleSearchChange()" placeholder="Введите запрос для поиска" class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-[15px] text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
                             </div>
                         </div>
-                        <div id="linksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                        <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
+                            <div class="min-w-0 flex-1">
+                                <div id="linksList" class="flex flex-col gap-3"></div>
+                            </div>
+                            <div class="w-full lg:w-[340px] lg:flex-shrink-0">
+                                <div class="rounded-3xl bg-gray-100 p-6">
+                                    <h3 class="mb-4 text-[17px] leading-6 font-medium text-gray-800">Частые вопросы</h3>
+                                    <div class="space-y-3">
+                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Как отправить ссылку клиенту в один клик</a>
+                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Почему оплата не проходит по ссылке</a>
+                                        <a href="#" class="block text-[15px] leading-5 font-normal text-blue-600">Где посмотреть статус платежа в истории</a>
+                                    </div>
+                                </div>
+                                <div class="mt-6 rounded-3xl bg-gray-100 p-6">
+                                    <h3 class="mb-5 text-center text-[17px] leading-6 font-medium text-gray-800">Как вам раздел «Платежные ссылки»?</h3>
+                                    <div class="flex items-center justify-center gap-4">
+                                        <button onclick="setFeedbackReaction('sad')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Плохо">☹️</button>
+                                        <button onclick="setFeedbackReaction('neutral')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Нормально">😐</button>
+                                        <button onclick="setFeedbackReaction('happy')" class="feedback-icon flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-[28px] transition-colors hover:bg-gray-300" title="Отлично">🙂</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -394,6 +417,8 @@
         
         let selectedLinkId = localStorage.getItem('selectedLinkId') || null;
         let editingLinkId = null; // ID ссылки, которая сейчас редактируется
+        let searchMode = 'merchant';
+        let searchQuery = '';
 
         // Base64 encoded T-Bank logo
         const tBankLogoBase64 = 'data:image/png;base64,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';
@@ -701,93 +726,89 @@
         }
 
 
+        function getStatusMeta(status) {
+            if (status === 'draft') {
+                return {
+                    dotClass: 'bg-gray-400',
+                    text: 'Черновик'
+                };
+            }
+            return {
+                dotClass: 'bg-green-500',
+                text: 'Принимает платежи'
+            };
+        }
+
+        function handleSearchChange() {
+            const modeEl = document.getElementById('searchMode');
+            const inputEl = document.getElementById('searchInput');
+            searchMode = modeEl ? modeEl.value : 'merchant';
+            searchQuery = inputEl ? inputEl.value.trim().toLowerCase() : '';
+            renderLinksList();
+        }
+
+        function setFeedbackReaction(reaction) {
+            const reactions = ['sad', 'neutral', 'happy'];
+            reactions.forEach(name => {
+                const button = document.querySelector(`button[onclick="setFeedbackReaction('${name}')"]`);
+                if (!button) {
+                    return;
+                }
+                if (name === reaction) {
+                    button.classList.remove('bg-gray-200');
+                    button.classList.add('bg-[#FFDD2D]');
+                } else {
+                    button.classList.remove('bg-[#FFDD2D]');
+                    button.classList.add('bg-gray-200');
+                }
+            });
+        }
+
         function renderLinksList() {
             const container = document.getElementById('linksList');
-            if (links.length === 0) {
-                container.innerHTML = '<div class="col-span-full rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500">Нет созданных ссылок</div>';
+            const filteredLinks = links.filter(link => {
+                if (!searchQuery) {
+                    return true;
+                }
+                const field = searchMode === 'title' ? (link.title || '') : (link.merchantName || '');
+                return field.toLowerCase().includes(searchQuery);
+            });
+
+            if (filteredLinks.length === 0) {
+                container.innerHTML = '<div class="rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500">Ничего не найдено</div>';
                 return;
             }
             
-            container.innerHTML = links.map(link => {
-                const actualLink = links.find(l => l.id === link.id) || link;
-                const statusColor = 'bg-green-500';
-                const statusText = 'Принимает платежи';
-                const amountText = actualLink.amountMode === 'fixed' 
-                    ? 'Фиксированно: ' + (actualLink.fixedAmount || 0).toLocaleString('ru-RU') + ' ₽' 
-                    : 'Свободная сумма';
-                let displayUrl = actualLink.url || `payment.com/link/${actualLink.id}`;
-                // Убираем https:// из URL
-                displayUrl = displayUrl.replace(/^https?:\/\//, '');
-                // Обрезаем до 30 символов и добавляем ... если длиннее
-                const truncatedUrl = displayUrl.length > 30 ? displayUrl.substring(0, 30) + '...' : displayUrl;
-                
+            container.innerHTML = filteredLinks.map(link => {
+                const statusMeta = getStatusMeta(link.status);
+                const titleText = link.title || 'Без названия';
                 return `
-                    <div class="group relative rounded-lg border border-gray-200 bg-white p-6 hover:shadow-md transition-all cursor-pointer" onclick="openEditModal('${actualLink.id}')">
-                        <!-- Top section: URL and Status -->
-                        <div class="flex items-start justify-between mb-4">
+                    <div class="w-full rounded-xl border border-gray-200 bg-white px-4 py-4 transition-colors hover:bg-gray-50">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="min-w-0">
+                                <div class="mb-1 flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full ${statusMeta.dotClass}"></span>
+                                    <span class="text-sm text-gray-600">${statusMeta.text}</span>
+                                </div>
+                                <div class="truncate text-base font-medium text-gray-900">${titleText}</div>
+                            </div>
                             <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                </svg>
-                                <a href="#" onclick="event.preventDefault(); event.stopPropagation(); openPreview('${actualLink.id}'); return false;" 
-                                   class="text-blue-600 hover:text-blue-800 text-sm font-normal hover:underline leading-5" title="${displayUrl}">
-                                    ${truncatedUrl}
-                                </a>
-                            </div>
-                            <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-100">
-                                <div class="w-2 h-2 rounded-full ${statusColor} flex-shrink-0"></div>
-                                <span class="text-xs font-normal text-gray-900 leading-4 whitespace-nowrap">${statusText}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Link name -->
-                        <h3 class="text-2xl font-normal text-gray-900 mb-3 leading-7">${actualLink.title || 'Название ссылки'}</h3>
-                        
-                        <!-- Amount type -->
-                        <p class="text-sm font-normal text-gray-500 leading-5">${amountText}</p>
-                        
-                        <!-- Action buttons on hover -->
-                        <div class="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="event.stopPropagation(); openEditModal('${actualLink.id}');" 
-                                class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm" 
-                                title="Редактировать">
-                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                            </button>
-                            <div class="relative">
-                                <button onclick="event.stopPropagation(); toggleCopyMenu('${actualLink.id}', event);" 
-                                    class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm" 
-                                    title="Копировать ссылку или QR">
-                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button onclick="event.stopPropagation(); downloadQR('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Скопировать QR">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h3v3H5v3H3V7zm13-2h3a2 2 0 012 2v3h-2V8h-3V5zM3 16h2v3h3v2H5a2 2 0 01-2-2v-3zm18 0v3a2 2 0 01-2 2h-3v-2h3v-3h2zM9 9h6v6H9V9z"/>
+                                    </svg>
+                                </button>
+                                <button onclick="event.stopPropagation(); copyLinkUrl('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Скопировать ссылку">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                     </svg>
                                 </button>
-                                <div id="copyMenu-${actualLink.id}" class="absolute right-0 bottom-full mb-2 hidden bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10 min-w-[180px]">
-                                    <button onclick="event.stopPropagation(); copyLinkUrl('${actualLink.id}'); closeCopyMenu('${actualLink.id}');" 
-                                        class="w-full px-4 py-2 text-left text-sm text-gray-900 hover:bg-gray-50 transition-colors flex items-center gap-2 whitespace-nowrap">
-                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                        </svg>
-                                        Скопировать ссылку
-                                    </button>
-                                    <button onclick="event.stopPropagation(); downloadQR('${actualLink.id}'); closeCopyMenu('${actualLink.id}');" 
-                                        class="w-full px-4 py-2 text-left text-sm text-gray-900 hover:bg-gray-50 transition-colors flex items-center gap-2 border-t border-gray-200 whitespace-nowrap">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        Скачать QR
-                                    </button>
-                                </div>
+                                <button onclick="event.stopPropagation(); openEditModal('${link.id}');" class="rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-100" title="Редактировать">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
                             </div>
-                            <button onclick="event.stopPropagation(); deleteLink('${actualLink.id}');" 
-                                class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm" 
-                                title="Удалить">
-                                <svg class="w-4 h-4 text-gray-600 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
                         </div>
                     </div>
                 `;
@@ -1975,9 +1996,32 @@
             renderLinkForm();
         }
 
+        function normalizeSearchSelectAppearance() {
+            const searchSelect = document.getElementById('searchMode');
+            if (!searchSelect) {
+                return;
+            }
+
+            // Убираем левую иконку и ставим стрелку справа с корректным отступом
+            const wrapper = searchSelect.parentElement;
+            const icon = wrapper ? wrapper.querySelector('svg') : null;
+            if (icon) {
+                icon.classList.remove('left-3');
+                icon.classList.add('right-3');
+                const path = icon.querySelector('path');
+                if (path) {
+                    path.setAttribute('d', 'M19 9l-7 7-7-7');
+                }
+            }
+
+            searchSelect.classList.add('appearance-none', 'pl-3', 'pr-10');
+            searchSelect.classList.remove('pl-10', 'pr-3');
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             render();
+            normalizeSearchSelectAppearance();
         });
     </script>
 </body>
