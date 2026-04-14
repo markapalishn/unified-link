@@ -293,12 +293,21 @@
             saveState();
         }
 
+        let hasStatusMigration = false;
         links = links.map(link => {
+            if (link.status === 'draft') {
+                hasStatusMigration = true;
+                return { ...link, status: 'ready' };
+            }
             if (link.linkType === 'single' && link.status === 'disabled') {
+                hasStatusMigration = true;
                 return { ...link, status: 'paid' };
             }
             return link;
         });
+        if (hasStatusMigration) {
+            saveState();
+        }
 
         function saveState() {
             localStorage.setItem('paymentLinks', JSON.stringify(links));
@@ -490,12 +499,6 @@
                 return {
                     dotClass: 'payment-link-status-dot-disabled',
                     text: 'Выключена'
-                };
-            }
-            if (status === 'draft') {
-                return {
-                    dotClass: 'payment-link-status-dot-draft',
-                    text: 'Черновик'
                 };
             }
             return {

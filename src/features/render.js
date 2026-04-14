@@ -43,10 +43,10 @@
                     : link.status === 'disabled'
                     ? `<div class="payment-link-disabled-actions">
                             <button onclick="event.stopPropagation(); enableLink('${link.id}');" class="payment-link-enable-btn" title="Включить ссылку">Включить</button>
-                            ${transactionsButtonHtml}
                             <button onclick="event.stopPropagation(); deleteLink('${link.id}');" class="payment-link-delete-btn" title="Удалить ссылку">
                                 <span class="payment-link-delete-icon" aria-hidden="true"></span>
                             </button>
+                            ${transactionsButtonHtml}
                        </div>`
                     : `<div class="payment-link-actions">
                                 ${linkType === 'reusable' ? transactionsButtonHtml : ''}

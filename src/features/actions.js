@@ -196,7 +196,7 @@
                     generateReceipt: generateReceiptValue,
                     receiptItems: generateReceiptValue ? receiptItemsValue : [],
                     createTemplate: localStorage.getItem('tempCreateTemplate') === 'true',
-                    status: 'draft'
+                    status: 'ready'
                 };
 
                 // Валидация: не даем сохранять "пустую" ссылку
@@ -798,6 +798,39 @@
             renderLinksList();
         }
 
+        let sidebarBannerCurrentSlide = 0;
+        let sidebarBannerTimer = null;
+
+        function switchSidebarBannerSlide(index) {
+            const slides = document.querySelectorAll('.sidebar-banner-slide');
+            const dots = document.querySelectorAll('.sidebar-banner-dot');
+            if (!slides.length || !dots.length) {
+                return;
+            }
+            const total = slides.length;
+            sidebarBannerCurrentSlide = ((index % total) + total) % total;
+            slides.forEach((slide, slideIndex) => {
+                slide.classList.toggle('is-active', slideIndex === sidebarBannerCurrentSlide);
+            });
+            dots.forEach((dot, dotIndex) => {
+                dot.classList.toggle('is-active', dotIndex === sidebarBannerCurrentSlide);
+            });
+        }
+
+        function initSidebarBannerCarousel() {
+            const carousel = document.querySelector('.sidebar-banner-carousel');
+            if (!carousel) {
+                return;
+            }
+            switchSidebarBannerSlide(0);
+            if (sidebarBannerTimer) {
+                clearInterval(sidebarBannerTimer);
+            }
+            sidebarBannerTimer = setInterval(() => {
+                switchSidebarBannerSlide(sidebarBannerCurrentSlide + 1);
+            }, 10000);
+        }
+
 
         function render() {
             renderLinksList();
@@ -807,6 +840,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             render();
+            initSidebarBannerCarousel();
             const modalSaveButton = document.getElementById('modalSaveButton');
             const modalDisableButton = document.getElementById('modalDisableButton');
             if (modalSaveButton) {
