@@ -525,6 +525,7 @@
             return {
                 templateId: '',
                 title: '',
+                templateName: '',
                 merchantName: 'Онлайн Школа IT',
                 amountMode: 'fixed',
                 fixedAmount: '',
@@ -1095,6 +1096,7 @@
         }
 
         function renderFormFields(link) {
+            const title = link ? (link.title || '') : '';
             const merchantName = link ? link.merchantName : 'Онлайн Школа IT';
             let linkType = 'reusable';
             const hiddenLinkType = document.querySelector('input[name="linkType"]:checked');
@@ -1171,6 +1173,14 @@
 
             return `
                 <div class="space-y-5">
+                    ${editingLinkId ? `
+                    <div>
+                        <label class="mb-2 block text-sm font-normal text-black">Название ссылки</label>
+                        <input type="text" id="linkTitle" value="${title}"
+                            class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                            placeholder="Введите название ссылки">
+                    </div>
+                    ` : ''}
                     <div>
                         <label class="mb-2 block text-sm font-normal text-black">Выбор магазина</label>
                         <select id="merchantName" 
@@ -1585,7 +1595,8 @@
             renderCreateModalContent(getCurrentFormDraft());
         }
 
-        function updateReceiptItemsState(nextItems) {
+        function updateReceiptItemsState(nextItems, options = {}) {
+            const shouldRerender = options.rerender !== false;
             const linkId = editingLinkId || selectedLinkId;
             if (linkId) {
                 const link = links.find(l => l.id === linkId);
@@ -1593,18 +1604,22 @@
                 link.receiptItems = nextItems;
                 link.updatedAt = new Date().toISOString();
                 saveState();
-                openEditModal(linkId, link);
+                if (shouldRerender) {
+                    openEditModal(linkId, link);
+                }
                 return;
             }
             localStorage.setItem('tempReceiptItems', JSON.stringify(nextItems));
-            renderCreateModalContent(getCurrentFormDraft());
+            if (shouldRerender) {
+                renderCreateModalContent(getCurrentFormDraft());
+            }
         }
 
         function addReceiptItem() {
             const draft = getCurrentFormDraft();
             const items = Array.isArray(draft.receiptItems) ? draft.receiptItems.slice() : [];
             items.push(getDefaultReceiptItem());
-            updateReceiptItemsState(items);
+            updateReceiptItemsState(items, { rerender: true });
         }
 
         function removeReceiptItem(index) {
@@ -1612,7 +1627,7 @@
             const items = Array.isArray(draft.receiptItems) ? draft.receiptItems.slice() : [];
             if (items.length <= 1) return;
             items.splice(index, 1);
-            updateReceiptItemsState(items);
+            updateReceiptItemsState(items, { rerender: true });
         }
 
         function updateReceiptItemField(index, field, value) {
@@ -1620,7 +1635,7 @@
             const items = Array.isArray(draft.receiptItems) ? draft.receiptItems.slice() : [getDefaultReceiptItem()];
             if (!items[index]) return;
             items[index] = { ...items[index], [field]: value };
-            updateReceiptItemsState(items);
+            updateReceiptItemsState(items, { rerender: false });
         }
 
         function updateModalSaveBarVisibility(isVisible) {
@@ -1629,7 +1644,7 @@
             const saveButton = document.getElementById('modalSaveButton');
             if (!saveBar) return;
             const isCreateMode = !editingLinkId;
-            const showSaveBar = isVisible && (!isCreateMode || createWizardStep === 4);
+            const showSaveBar = isVisible && !isCreateMode;
             saveBar.style.display = showSaveBar ? 'flex' : 'none';
             if (disableButton) {
                 const currentLink = editingLinkId ? links.find(l => l.id === editingLinkId) : null;
@@ -1644,12 +1659,14 @@
             }
         }
 
-        function updateCreateWizardField(field, value) {
+        function updateCreateWizardField(field, value, shouldRerender = false) {
             if (!createWizardDraft) {
                 createWizardDraft = getDefaultCreateDraft();
             }
             createWizardDraft = { ...createWizardDraft, [field]: value };
-            renderCreateModalContent(createWizardDraft);
+            if (shouldRerender) {
+                renderCreateModalContent(createWizardDraft);
+            }
         }
 
         function validateCreateWizardStep(step, draft) {
@@ -1742,6 +1759,15 @@
             renderCreateModalContent(createWizardDraft);
         }
 
+        function removeCreateWizardReceiptItem(index) {
+            if (!createWizardDraft) createWizardDraft = getDefaultCreateDraft();
+            const items = Array.isArray(createWizardDraft.receiptItems) ? createWizardDraft.receiptItems.slice() : [];
+            if (items.length <= 1) return;
+            items.splice(index, 1);
+            createWizardDraft.receiptItems = items;
+            renderCreateModalContent(createWizardDraft);
+        }
+
         function updateCreateWizardReceiptItem(index, field, value) {
             if (!createWizardDraft) createWizardDraft = getDefaultCreateDraft();
             const items = Array.isArray(createWizardDraft.receiptItems) ? createWizardDraft.receiptItems.slice() : [getDefaultReceiptItem()];
@@ -1818,10 +1844,10 @@
             createWizardDraft = safeDraft;
             const stepContent = renderCreateWizardStep(safeDraft);
             const stepNames = [
-                'Шаблон сумма',
-                'Тип описание',
-                'Поля чек',
-                'Проверка сохранение'
+                'Основыные поля',
+                'Формат платежа',
+                'Фискализация',
+                'Шаблонизация'
             ];
             if (modalTopBar) {
                 modalTopBar.style.display = 'flex';
@@ -1894,15 +1920,15 @@
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Тип ссылки</label>
                             <div class="flex gap-3">
-                                <button type="button" onclick="updateCreateWizardField('linkType', 'reusable')" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.linkType === 'reusable' ? '' : 'opacity-60'}" style="background-color: ${draft.linkType === 'reusable' ? '#DED0BB' : '#F5F5F5'};">Многоразовая</button>
-                                <button type="button" onclick="updateCreateWizardField('linkType', 'single')" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.linkType === 'single' ? '' : 'opacity-60'}" style="background-color: ${draft.linkType === 'single' ? '#DED0BB' : '#F5F5F5'};">Одноразовая</button>
+                                <button type="button" onclick="updateCreateWizardField('linkType', 'reusable', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.linkType === 'reusable' ? '' : 'opacity-60'}" style="background-color: ${draft.linkType === 'reusable' ? '#DED0BB' : '#F5F5F5'};">Многоразовая</button>
+                                <button type="button" onclick="updateCreateWizardField('linkType', 'single', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.linkType === 'single' ? '' : 'opacity-60'}" style="background-color: ${draft.linkType === 'single' ? '#DED0BB' : '#F5F5F5'};">Одноразовая</button>
                             </div>
                         </div>
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Формат оплаты</label>
                             <div class="flex gap-3">
-                                <button type="button" onclick="updateCreateWizardField('amountMode', 'fixed')" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.amountMode === 'fixed' ? '' : 'opacity-60'}" style="background-color: ${draft.amountMode === 'fixed' ? '#DED0BB' : '#F5F5F5'};">Фиксированная</button>
-                                <button type="button" onclick="updateCreateWizardField('amountMode', 'free')" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.amountMode === 'free' ? '' : 'opacity-60'}" style="background-color: ${draft.amountMode === 'free' ? '#DED0BB' : '#F5F5F5'};">Свободная</button>
+                                <button type="button" onclick="updateCreateWizardField('amountMode', 'fixed', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.amountMode === 'fixed' ? '' : 'opacity-60'}" style="background-color: ${draft.amountMode === 'fixed' ? '#DED0BB' : '#F5F5F5'};">Фиксированная</button>
+                                <button type="button" onclick="updateCreateWizardField('amountMode', 'free', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.amountMode === 'free' ? '' : 'opacity-60'}" style="background-color: ${draft.amountMode === 'free' ? '#DED0BB' : '#F5F5F5'};">Свободная</button>
                             </div>
                         </div>
                         <div>
@@ -1928,15 +1954,15 @@
                                     <label class="text-sm font-normal text-black">Дополнительные поля</label>
                                     <p class="text-xs text-gray-500 mt-0.5">Настройте сбор контактов и деталей заказа</p>
                                 </div>
-                                <button type="button" onclick="updateCreateWizardField('additionalEnabled', !(createWizardDraft.additionalEnabled))" class="relative inline-flex h-6 w-11 items-center rounded-full hover:opacity-90 ${createWizardDraft.additionalEnabled ? '' : 'opacity-50'}" style="background-color: ${createWizardDraft.additionalEnabled ? '#DED0BB' : '#E5E7EB'};">
+                                <button type="button" onclick="updateCreateWizardField('additionalEnabled', !(createWizardDraft.additionalEnabled), true)" class="relative inline-flex h-6 w-11 items-center rounded-full hover:opacity-90 ${createWizardDraft.additionalEnabled ? '' : 'opacity-50'}" style="background-color: ${createWizardDraft.additionalEnabled ? '#DED0BB' : '#E5E7EB'};">
                                     <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ${createWizardDraft.additionalEnabled ? 'translate-x-6' : 'translate-x-1'}"></span>
                                 </button>
                             </div>
                             ${createWizardDraft.additionalEnabled ? `
                             <div class="mt-4 space-y-3 border-t border-gray-200 pt-4">
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectEmail ? 'checked' : ''} onchange="updateCreateWizardField('collectEmail', this.checked)"> Собирать email</label>
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectPhone ? 'checked' : ''} onchange="updateCreateWizardField('collectPhone', this.checked)"> Собирать номер телефона</label>
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectOrderDetails ? 'checked' : ''} onchange="updateCreateWizardField('collectOrderDetails', this.checked)"> Собирать подробности заказа</label>
+                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectEmail ? 'checked' : ''} onchange="updateCreateWizardField('collectEmail', this.checked, true)"> Собирать email</label>
+                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectPhone ? 'checked' : ''} onchange="updateCreateWizardField('collectPhone', this.checked, true)"> Собирать номер телефона</label>
+                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectOrderDetails ? 'checked' : ''} onchange="updateCreateWizardField('collectOrderDetails', this.checked, true)"> Собирать подробности заказа</label>
                             </div>` : ''}
                         </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -1953,11 +1979,49 @@
                             <div class="mt-4 space-y-3 border-t border-gray-200 pt-4">
                                 ${(draft.receiptItems || []).map((item, index) => `
                                     <div class="rounded-lg border border-gray-200 bg-white p-3">
-                                        <div class="mb-2 text-xs text-gray-500">Товар ${index + 1}</div>
+                                        <div class="mb-2 flex items-center justify-between">
+                                            <div class="text-xs text-gray-500">Товар ${index + 1}</div>
+                                            ${(draft.receiptItems || []).length > 1 ? `
+                                                <button type="button" onclick="removeCreateWizardReceiptItem(${index})" class="text-xs text-gray-500 hover:text-gray-700">Удалить</button>
+                                            ` : ''}
+                                        </div>
                                         <input type="text" value="${item.name || ''}" oninput="updateCreateWizardReceiptItem(${index}, 'name', this.value)" class="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Название товара">
                                         <div class="grid grid-cols-2 gap-2">
                                             <input type="number" min="1" step="0.01" value="${item.quantity || '1'}" oninput="updateCreateWizardReceiptItem(${index}, 'quantity', this.value)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Кол-во">
                                             <input type="number" min="0" step="0.01" value="${item.price || ''}" oninput="updateCreateWizardReceiptItem(${index}, 'price', this.value)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Цена">
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="mb-1 block text-xs text-gray-600">Ставка НДС</label>
+                                            <select onchange="updateCreateWizardReceiptItem(${index}, 'vat', this.value)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+                                                <option value="none" ${item.vat === 'none' ? 'selected' : ''}>Без НДС</option>
+                                                <option value="vat0" ${item.vat === 'vat0' ? 'selected' : ''}>НДС 0%</option>
+                                                <option value="vat10" ${item.vat === 'vat10' ? 'selected' : ''}>НДС 10%</option>
+                                                <option value="vat20" ${item.vat === 'vat20' ? 'selected' : ''}>НДС 20%</option>
+                                                <option value="vat110" ${item.vat === 'vat110' ? 'selected' : ''}>НДС 10/110</option>
+                                                <option value="vat120" ${item.vat === 'vat120' ? 'selected' : ''}>НДС 20/120</option>
+                                            </select>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="mb-1 block text-xs text-gray-600">Предмет расчета</label>
+                                            <select onchange="updateCreateWizardReceiptItem(${index}, 'paymentObject', this.value)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+                                                <option value="commodity" ${item.paymentObject === 'commodity' ? 'selected' : ''}>Товар</option>
+                                                <option value="service" ${item.paymentObject === 'service' ? 'selected' : ''}>Услуга</option>
+                                                <option value="job" ${item.paymentObject === 'job' ? 'selected' : ''}>Работа</option>
+                                                <option value="payment" ${item.paymentObject === 'payment' ? 'selected' : ''}>Платеж</option>
+                                                <option value="agent_commission" ${item.paymentObject === 'agent_commission' ? 'selected' : ''}>Агентское вознаграждение</option>
+                                            </select>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="mb-1 block text-xs text-gray-600">Способ расчета</label>
+                                            <select onchange="updateCreateWizardReceiptItem(${index}, 'paymentMethod', this.value)" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+                                                <option value="full_payment" ${item.paymentMethod === 'full_payment' ? 'selected' : ''}>Полный расчет</option>
+                                                <option value="prepayment100" ${item.paymentMethod === 'prepayment100' ? 'selected' : ''}>Предоплата 100%</option>
+                                                <option value="prepayment" ${item.paymentMethod === 'prepayment' ? 'selected' : ''}>Частичная предоплата</option>
+                                                <option value="advance" ${item.paymentMethod === 'advance' ? 'selected' : ''}>Аванс</option>
+                                                <option value="partial_payment" ${item.paymentMethod === 'partial_payment' ? 'selected' : ''}>Частичный расчет и кредит</option>
+                                                <option value="credit" ${item.paymentMethod === 'credit' ? 'selected' : ''}>Передача в кредит</option>
+                                                <option value="credit_payment" ${item.paymentMethod === 'credit_payment' ? 'selected' : ''}>Оплата кредита</option>
+                                            </select>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -1974,23 +2038,29 @@
 
             return `
                 <div class="space-y-5">
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-sm text-black">Проверьте настройки и сохраните ссылку.</p>
-                        <p class="mt-2 text-xs text-gray-500">Вы сможете быстро создавать такие же ссылки, если включите опцию сохранения шаблона.</p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+                        <p class="text-sm text-black">Проверьте настройки и создайте ссылку. Если нужно, сохраните эти параметры как шаблон для быстрого создания в будущем.</p>
                         <div class="flex items-center justify-between">
                             <div>
                                 <label class="text-sm font-normal text-black">Сохранить как шаблон</label>
                                 <p class="text-xs text-gray-500 mt-0.5">Шаблон будет доступен в первом шаге создания</p>
                             </div>
-                            <button type="button" onclick="updateCreateWizardField('saveAsTemplate', !createWizardDraft.saveAsTemplate)" class="relative inline-flex h-6 w-11 items-center rounded-full hover:opacity-90 ${createWizardDraft.saveAsTemplate ? '' : 'opacity-50'}" style="background-color: ${createWizardDraft.saveAsTemplate ? '#DED0BB' : '#E5E7EB'};">
+                            <button type="button" onclick="updateCreateWizardField('saveAsTemplate', !createWizardDraft.saveAsTemplate, true)" class="relative inline-flex h-6 w-11 items-center rounded-full hover:opacity-90 ${createWizardDraft.saveAsTemplate ? '' : 'opacity-50'}" style="background-color: ${createWizardDraft.saveAsTemplate ? '#DED0BB' : '#E5E7EB'};">
                                 <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ${createWizardDraft.saveAsTemplate ? 'translate-x-6' : 'translate-x-1'}"></span>
                             </button>
                         </div>
+                        ${createWizardDraft.saveAsTemplate ? `
+                            <div>
+                                <label class="mb-1 block text-xs text-gray-600">Название шаблона</label>
+                                <input type="text" value="${createWizardDraft.templateName || ''}" oninput="updateCreateWizardField('templateName', this.value)"
+                                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    placeholder="Например, Шаблон консультации">
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="flex justify-between pt-2">
                         <button type="button" onclick="goCreateWizardStep(3)" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Назад</button>
+                        <button type="button" onclick="saveDraft()" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Создать</button>
                     </div>
                 </div>
             `;
@@ -2329,9 +2399,14 @@
                     }
 
                     if (draft.saveAsTemplate) {
+                        const templateName = (draft.templateName || '').trim();
+                        if (!templateName) {
+                            showNotification('Укажите название шаблона');
+                            return;
+                        }
                         templates.push({
                             id: `tpl-${Date.now()}`,
-                            name: `${linkData.merchantName} (${linkData.linkType === 'single' ? 'одноразовая' : 'многоразовая'})`,
+                            name: templateName,
                             settings: {
                                 merchantName: linkData.merchantName,
                                 linkType: linkData.linkType,
@@ -2368,6 +2443,7 @@
                     return;
                 }
 
+                const titleEl = document.getElementById('linkTitle');
                 const merchantNameEl = document.getElementById('merchantName');
                 const linkTypeEl = document.querySelector('input[name="linkType"]:checked');
                 const amountModeEl = document.querySelector('input[name="amountMode"]:checked');
@@ -2452,7 +2528,7 @@
                 }
 
                 const linkData = {
-                    title: 'Платежная ссылка',
+                    title: titleEl ? ((titleEl.value || '').trim() || 'Платежная ссылка') : 'Платежная ссылка',
                     merchantName: merchantNameEl.value || 'Онлайн Школа IT',
                     linkType: linkType,
                     amountMode: amountMode || 'fixed',
