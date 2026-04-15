@@ -749,6 +749,28 @@
             renderCreateModalContent(createWizardDraft);
         }
 
+        function createFromTemplateWithoutEditing() {
+            if (!createWizardDraft) {
+                createWizardDraft = getDefaultCreateDraft();
+            }
+            const templateId = (createWizardDraft.templateId || '').trim();
+            if (!templateId) {
+                showNotification('Выберите шаблон для быстрого создания');
+                return;
+            }
+            const templateExists = templates.some(template => template.id === templateId);
+            if (!templateExists) {
+                showNotification('Выбранный шаблон не найден');
+                return;
+            }
+            createWizardDraft = {
+                ...applyTemplateToCreateDraft(templateId),
+                saveAsTemplate: false,
+                templateName: ''
+            };
+            saveDraft();
+        }
+
         function toggleCreateWizardReceipt() {
             if (!createWizardDraft) {
                 createWizardDraft = getDefaultCreateDraft();
@@ -918,7 +940,10 @@
                         </div>
                         <div class="flex justify-between pt-2">
                             <span></span>
-                            <button type="button" onclick="goCreateWizardStep(2)" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Далее</button>
+                            <div class="flex items-center gap-2">
+                                ${draft.templateId ? `<button type="button" onclick="createFromTemplateWithoutEditing()" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Создать без редактировани</button>` : ''}
+                                <button type="button" onclick="goCreateWizardStep(2)" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Далее</button>
+                            </div>
                         </div>
                     </div>
                 `;
