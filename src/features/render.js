@@ -1,6 +1,10 @@
         function renderLinksList() {
             const container = document.getElementById('linksList');
+            const intermediate = isIntermediateMode();
             const filteredLinks = links.filter(link => {
+                if (intermediate && link.linkType === 'single') {
+                    return false;
+                }
                 if (!searchQuery) {
                     return true;
                 }
