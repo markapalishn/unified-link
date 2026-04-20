@@ -1,6 +1,6 @@
 // State management
         // Check for data version to ensure demo data is loaded
-        const DATA_VERSION = '3.5'; // Increment this when demo data changes
+        const DATA_VERSION = '3.6'; // Increment this when demo data changes
         const TEMPLATES_VERSION = '1.0';
         const storedVersion = localStorage.getItem('paymentLinksVersion');
         const storedTemplatesVersion = localStorage.getItem('paymentLinkTemplatesVersion');
@@ -198,6 +198,7 @@
                     phoneRequired: false,
                     collectOrderDetails: false,
                     orderDetailsRequired: false,
+                    mockTransactionsCount: 14,
                     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
                     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
                 },
@@ -644,6 +645,11 @@
                     method: methods[Math.floor(next() * methods.length)]
                 };
             };
+            if (typeof link.mockTransactionsCount === 'number' && link.mockTransactionsCount >= 0) {
+                const n = Math.floor(link.mockTransactionsCount);
+                return Array.from({ length: n }, (_, i) => makeTxn(i))
+                    .sort((a, b) => b.date - a.date);
+            }
             if (link.linkType === 'single') {
                 if (link.status === 'paid') {
                     return [makeTxn(0)];
