@@ -690,6 +690,18 @@ body.prototype-intermediate .prototype-mode-switcher-dot {
     gap: 12px;
 }
 
+.faq-card-list-intermediate {
+    display: none;
+}
+
+body.prototype-intermediate .faq-card-list-target {
+    display: none;
+}
+
+body.prototype-intermediate .faq-card-list-intermediate {
+    display: flex;
+}
+
 .faq-link {
     display: block;
     font-size: 15px;
