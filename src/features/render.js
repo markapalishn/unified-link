@@ -1042,8 +1042,31 @@
             }
 
             const intermediate = isIntermediateMode();
+            const notificationsChannel = createWizardDraft.notificationsChannel || 'none';
+            const notificationsContact = createWizardDraft.notificationsContact || '';
+            const notificationsContactPlaceholder = notificationsChannel === 'email' ? 'your@email.com' : 'Ник в MAX, например @my_nick';
+            const notificationsContactLabel = notificationsChannel === 'email' ? 'Email для уведомлений' : 'Ник в MAX';
             return `
                 <div class="space-y-5">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+                        <div>
+                            <label class="text-sm font-normal text-black">Уведомления об успешных оплатах</label>
+                            <p class="text-xs text-gray-500 mt-0.5">Выберите, куда присылать уведомление при каждой успешной транзакции</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="updateCreateWizardField('notificationsChannel', 'none', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${notificationsChannel === 'none' ? '' : 'opacity-60'}" style="background-color: ${notificationsChannel === 'none' ? '#DED0BB' : '#F5F5F5'};">Не присылать</button>
+                            <button type="button" onclick="updateCreateWizardField('notificationsChannel', 'email', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${notificationsChannel === 'email' ? '' : 'opacity-60'}" style="background-color: ${notificationsChannel === 'email' ? '#DED0BB' : '#F5F5F5'};">Почта</button>
+                            <button type="button" onclick="updateCreateWizardField('notificationsChannel', 'max', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${notificationsChannel === 'max' ? '' : 'opacity-60'}" style="background-color: ${notificationsChannel === 'max' ? '#DED0BB' : '#F5F5F5'};">MAX</button>
+                        </div>
+                        ${notificationsChannel !== 'none' ? `
+                            <div>
+                                <label class="mb-1 block text-xs text-gray-600">${notificationsContactLabel}</label>
+                                <input type="${notificationsChannel === 'email' ? 'email' : 'text'}" value="${notificationsContact}" oninput="updateCreateWizardField('notificationsContact', this.value)"
+                                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    placeholder="${notificationsContactPlaceholder}">
+                            </div>
+                        ` : ''}
+                    </div>
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
                         <p class="text-sm text-black">${intermediate ? 'Проверьте настройки и создайте платежную ссылку.' : 'Проверьте настройки и создайте ссылку. Если нужно, сохраните эти параметры как шаблон для быстрого создания в будущем.'}</p>
                         ${intermediate ? '' : `

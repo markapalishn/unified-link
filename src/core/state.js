@@ -94,14 +94,12 @@
             if (label) {
                 label.textContent = intermediate ? 'Промежуточный сценарий' : 'Целевая схема';
             }
-            const bannerImg = document.getElementById('sidebarBannerImg');
-            if (bannerImg) {
-                bannerImg.src = intermediate ? 'assets/banner_symma.png' : 'assets/banner_shablon.png';
-                bannerImg.alt = intermediate ? 'Баннер промежуточного сценария' : 'Баннер с шаблоном';
-            }
             const accountsIntermediateTab = document.querySelector('.nav-tab-accounts-intermediate');
             if (accountsIntermediateTab) {
                 accountsIntermediateTab.style.display = intermediate ? '' : 'none';
+            }
+            if (typeof initSidebarBannerCarousel === 'function') {
+                initSidebarBannerCarousel();
             }
         }
 
@@ -155,6 +153,8 @@
                 orderDetailsRequired: false,
                 generateReceipt: false,
                 receiptItems: [getDefaultReceiptItem()],
+                notificationsChannel: 'none',
+                notificationsContact: '',
                 saveAsTemplate: false
             };
         }

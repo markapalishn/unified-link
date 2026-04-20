@@ -766,6 +766,18 @@ body.prototype-intermediate .prototype-mode-switcher-dot {
     position: relative;
 }
 
+.sidebar-banner-track-intermediate {
+    display: none;
+}
+
+body.prototype-intermediate .sidebar-banner-track-target {
+    display: none;
+}
+
+body.prototype-intermediate .sidebar-banner-track-intermediate {
+    display: block;
+}
+
 .sidebar-banner-slide {
     position: absolute;
     inset: 0;

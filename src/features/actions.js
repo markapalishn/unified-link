@@ -19,6 +19,8 @@
                         orderDetailsRequired: !!draft.orderDetailsRequired,
                         generateReceipt: !!draft.generateReceipt,
                         receiptItems: draft.generateReceipt ? (draft.receiptItems || []) : [],
+                        notificationsChannel: ['email', 'max'].includes(draft.notificationsChannel) ? draft.notificationsChannel : 'none',
+                        notificationsContact: ['email', 'max'].includes(draft.notificationsChannel) ? (draft.notificationsContact || '').trim() : '',
                         status: 'ready'
                     };
 
@@ -50,6 +52,10 @@
                             return;
                         }
                     }
+                    if (linkData.notificationsChannel !== 'none' && !linkData.notificationsContact) {
+                        showNotification(linkData.notificationsChannel === 'email' ? 'Укажите email для уведомлений' : 'Укажите ник в MAX для уведомлений');
+                        return;
+                    }
 
                     if (draft.saveAsTemplate) {
                         const templateName = (draft.templateName || '').trim();
@@ -73,7 +79,9 @@
                                 collectOrderDetails: linkData.collectOrderDetails,
                                 orderDetailsRequired: linkData.orderDetailsRequired,
                                 generateReceipt: linkData.generateReceipt,
-                                receiptItems: linkData.receiptItems
+                                receiptItems: linkData.receiptItems,
+                                notificationsChannel: linkData.notificationsChannel,
+                                notificationsContact: linkData.notificationsContact
                             },
                             createdAt: new Date().toISOString()
                         });
@@ -801,9 +809,17 @@
         let sidebarBannerCurrentSlide = 0;
         let sidebarBannerTimer = null;
 
+        function getActiveBannerTrack() {
+            const mode = typeof isIntermediateMode === 'function' && isIntermediateMode() ? 'intermediate' : 'target';
+            return document.querySelector(`.sidebar-banner-track[data-banner-track="${mode}"]`);
+        }
+
         function switchSidebarBannerSlide(index) {
-            const slides = document.querySelectorAll('.sidebar-banner-slide');
-            const dots = document.querySelectorAll('.sidebar-banner-dot');
+            const track = getActiveBannerTrack();
+            if (!track) {
+                return;
+            }
+            const slides = track.querySelectorAll('.sidebar-banner-slide');
             if (!slides.length) {
                 return;
             }
@@ -812,10 +828,19 @@
             slides.forEach((slide, slideIndex) => {
                 slide.classList.toggle('is-active', slideIndex === sidebarBannerCurrentSlide);
             });
-            if (dots.length) {
+            const dotsContainer = document.querySelector('.sidebar-banner-dots');
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.sidebar-banner-dot');
                 dots.forEach((dot, dotIndex) => {
+                    if (dotIndex >= total) {
+                        dot.style.display = 'none';
+                        dot.classList.remove('is-active');
+                        return;
+                    }
+                    dot.style.display = '';
                     dot.classList.toggle('is-active', dotIndex === sidebarBannerCurrentSlide);
                 });
+                dotsContainer.style.display = total > 1 ? '' : 'none';
             }
         }
 
@@ -824,7 +849,9 @@
             if (!carousel) {
                 return;
             }
-            const slides = carousel.querySelectorAll('.sidebar-banner-slide');
+            const track = getActiveBannerTrack();
+            const slides = track ? track.querySelectorAll('.sidebar-banner-slide') : [];
+            sidebarBannerCurrentSlide = 0;
             switchSidebarBannerSlide(0);
             if (sidebarBannerTimer) {
                 clearInterval(sidebarBannerTimer);

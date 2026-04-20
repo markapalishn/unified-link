@@ -398,10 +398,22 @@
                             </div>
                             <div class="payment-links-sidebar">
                                 <div class="sidebar-banner-carousel" aria-label="Промо-баннеры">
-                                    <div class="sidebar-banner-track" id="sidebarBannerTrack">
+                                    <div class="sidebar-banner-track sidebar-banner-track-target" data-banner-track="target">
                                         <div class="sidebar-banner-slide is-active" data-slide-index="0">
-                                            <img id="sidebarBannerImg" src="assets/banner_shablon.png" alt="Баннер с шаблоном" class="sidebar-banner-image">
+                                            <img src="assets/banner_shablon.png" alt="Баннер с шаблоном" class="sidebar-banner-image">
                                         </div>
+                                        <div class="sidebar-banner-slide" data-slide-index="1">
+                                            <img src="assets/banner_MAX.png" alt="Баннер MAX" class="sidebar-banner-image">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-banner-track sidebar-banner-track-intermediate" data-banner-track="intermediate">
+                                        <div class="sidebar-banner-slide is-active" data-slide-index="0">
+                                            <img src="assets/banner_symma.png" alt="Баннер промежуточного сценария" class="sidebar-banner-image">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-banner-dots">
+                                        <button class="sidebar-banner-dot is-active" data-banner-dot="0" onclick="switchSidebarBannerSlide(0)" aria-label="Показать баннер 1"></button>
+                                        <button class="sidebar-banner-dot" data-banner-dot="1" onclick="switchSidebarBannerSlide(1)" aria-label="Показать баннер 2"></button>
                                     </div>
                                 </div>
                                 <div class="faq-card">
