@@ -862,7 +862,7 @@
             }
             sidebarBannerTimer = setInterval(() => {
                 switchSidebarBannerSlide(sidebarBannerCurrentSlide + 1);
-            }, 6000);
+            }, 3000);
         }
 
 
