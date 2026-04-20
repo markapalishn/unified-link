@@ -73,6 +73,7 @@
         let searchMode = 'merchant';
         let searchQuery = '';
         let archivedLinksExpanded = false;
+        let expandedTransactionsLinkId = null;
         let createWizardStep = 1;
         let createWizardDraft = null;
 
@@ -107,6 +108,7 @@
         function setPrototypeMode(mode) {
             prototypeMode = mode === PROTOTYPE_MODE_INTERMEDIATE ? PROTOTYPE_MODE_INTERMEDIATE : PROTOTYPE_MODE_TARGET;
             localStorage.setItem('prototypeMode', prototypeMode);
+            expandedTransactionsLinkId = null;
             applyPrototypeModeUI();
             if (typeof renderLinksList === 'function') {
                 renderLinksList();
@@ -528,6 +530,9 @@
             if (editingLinkId === id) {
                 editingLinkId = null; // Закрываем редактирование при удалении ссылки
             }
+            if (expandedTransactionsLinkId === id) {
+                expandedTransactionsLinkId = null;
+            }
             saveState();
             render();
         }
@@ -584,6 +589,15 @@
         }
 
         function openLinkTransactions(linkId) {
+            if (isIntermediateMode()) {
+                navigateToLinkOperations(linkId);
+                return;
+            }
+            expandedTransactionsLinkId = expandedTransactionsLinkId === linkId ? null : linkId;
+            renderLinksList();
+        }
+
+        function navigateToLinkOperations(linkId) {
             const operationsTabButton = document.querySelector("button[onclick*=\"setActiveSubTab('operations'\"]");
             if (operationsTabButton) {
                 setActiveSubTab('operations', operationsTabButton);
@@ -591,6 +605,59 @@
             const link = links.find(item => item.id === linkId);
             const linkName = link && link.title ? link.title : 'без названия';
             showNotification(`Откроется раздел «Операции» с транзакциями по ссылке «${linkName}»`);
+        }
+
+        function getMockTransactionsForLink(link) {
+            if (!link) {
+                return [];
+            }
+            const seedStr = String(link.id || 'x');
+            let seed = 0;
+            for (let i = 0; i < seedStr.length; i++) {
+                seed = (seed * 31 + seedStr.charCodeAt(i)) >>> 0;
+            }
+            const next = () => {
+                seed = (seed * 1664525 + 1013904223) >>> 0;
+                return seed / 0x100000000;
+            };
+            const payers = [
+                'Иван Петров', 'Мария Козлова', 'Сергей Орлов', 'Анна Романова',
+                'Дмитрий Волков', 'Елена Морозова', 'Павел Смирнов', 'Наталья Лебедева',
+                'Алексей Новиков', 'Ольга Соколова'
+            ];
+            const methods = ['Карта', 'СБП', 'T-Pay'];
+            const makeTxn = (index) => {
+                const base = link.fixedAmount && link.fixedAmount > 0 ? Number(link.fixedAmount) : Math.round(500 + next() * 9500);
+                const variation = link.amountMode === 'free' ? Math.round((next() - 0.5) * base * 0.4) : 0;
+                const amount = Math.max(100, base + variation);
+                const daysAgo = Math.floor(next() * 30);
+                const hoursAgo = Math.floor(next() * 24);
+                const date = new Date();
+                date.setDate(date.getDate() - daysAgo);
+                date.setHours(date.getHours() - hoursAgo);
+                const idPart = (Math.floor(next() * 1e10)).toString().padStart(10, '0');
+                return {
+                    id: `TX-${idPart}`,
+                    amount,
+                    date,
+                    payer: payers[Math.floor(next() * payers.length)],
+                    method: methods[Math.floor(next() * methods.length)]
+                };
+            };
+            if (link.linkType === 'single') {
+                if (link.status === 'paid') {
+                    return [makeTxn(0)];
+                }
+                return [];
+            }
+            if (link.status === 'disabled') {
+                const n = Math.floor(next() * 4);
+                return Array.from({ length: n }, (_, i) => makeTxn(i))
+                    .sort((a, b) => b.date - a.date);
+            }
+            const n = 3 + Math.floor(next() * 6);
+            return Array.from({ length: n }, (_, i) => makeTxn(i))
+                .sort((a, b) => b.date - a.date);
         }
 
         function setFeedbackReaction(reaction) {

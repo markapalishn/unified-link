@@ -19,6 +19,10 @@
 
             const activeLinks = filteredLinks.filter(link => {
                 return !(link.status === 'disabled' || (link.linkType === 'single' && link.status === 'paid'));
+            }).sort((a, b) => {
+                const aSingle = a.linkType === 'single' ? 0 : 1;
+                const bSingle = b.linkType === 'single' ? 0 : 1;
+                return aSingle - bSingle;
             });
             const archivedLinks = filteredLinks.filter(link => {
                 return link.status === 'disabled' || (link.linkType === 'single' && link.status === 'paid');
@@ -37,9 +41,10 @@
                 const singleTimerHtml = linkType === 'single' && link.status !== 'paid'
                     ? `<span class="payment-link-expiry"><span class="payment-link-expiry-icon" aria-hidden="true"></span>Осталось ${getSingleLinkDaysLeft(link)} дн.</span>`
                     : '';
+                const isTransactionsExpanded = expandedTransactionsLinkId === link.id;
                 const transactionsButtonHtml = isIntermediateMode()
                     ? ''
-                    : `<button onclick="event.stopPropagation(); openLinkTransactions('${link.id}');" class="payment-link-action-btn" title="Транзакции">
+                    : `<button onclick="event.stopPropagation(); openLinkTransactions('${link.id}');" class="payment-link-action-btn${isTransactionsExpanded ? ' is-active' : ''}" title="Показать транзакции">
                                 <span class="payment-link-action-icon payment-link-action-icon-transactions" aria-hidden="true"></span>
                             </button>`;
                 const actionsHtml = link.status === 'paid'
@@ -66,8 +71,9 @@
                                     <span class="payment-link-action-icon payment-link-action-icon-edit" aria-hidden="true"></span>
                                 </button>
                             </div>`;
+                const transactionsPanelHtml = isTransactionsExpanded ? renderLinkTransactionsPanel(link) : '';
                 return `
-                    <div class="payment-link-row">
+                    <div class="payment-link-row${isTransactionsExpanded ? ' is-transactions-expanded' : ''}">
                         <div class="payment-link-row-inner">
                             <div class="payment-link-main">
                                 <div class="payment-link-status">
@@ -82,6 +88,72 @@
                             </div>
                             ${actionsHtml}
                         </div>
+                        ${transactionsPanelHtml}
+                    </div>
+                `;
+            };
+
+            const formatTransactionAmount = (amount) => {
+                const value = Math.round(Number(amount) || 0);
+                return value.toLocaleString('ru-RU') + ' ₽';
+            };
+
+            const formatTransactionDate = (date) => {
+                try {
+                    return new Intl.DateTimeFormat('ru-RU', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).format(date);
+                } catch (e) {
+                    return '';
+                }
+            };
+
+            const renderLinkTransactionsPanel = (link) => {
+                const allTransactions = getMockTransactionsForLink(link);
+                const isSingle = link.linkType === 'single';
+                const limit = isSingle ? 1 : 5;
+                const visible = allTransactions.slice(0, limit);
+                const hasMore = !isSingle && allTransactions.length > limit;
+                const emptyMessage = link.status === 'disabled'
+                    ? 'По этой ссылке оплат не было'
+                    : 'По этой ссылке пока нет оплат';
+                const headerRowHtml = visible.length
+                    ? `<div class="payment-link-transaction-row payment-link-transaction-row-header">
+                            <div class="payment-link-transaction-cell payment-link-transaction-date">Дата</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-id">ID транзакции</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-payer">Плательщик</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-method">Метод оплаты</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-amount">Сумма</div>
+                        </div>`
+                    : '';
+                const rowsHtml = visible.length
+                    ? headerRowHtml + visible.map(tx => `
+                        <div class="payment-link-transaction-row">
+                            <div class="payment-link-transaction-cell payment-link-transaction-date">${formatTransactionDate(tx.date)}</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-id">${tx.id}</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-payer">${tx.payer}</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-method">${tx.method}</div>
+                            <div class="payment-link-transaction-cell payment-link-transaction-amount">${formatTransactionAmount(tx.amount)}</div>
+                        </div>
+                    `).join('')
+                    : `<div class="payment-link-transaction-empty">${emptyMessage}</div>`;
+                const moreButtonHtml = hasMore
+                    ? `<button type="button" onclick="event.stopPropagation(); navigateToLinkOperations('${link.id}');" class="payment-link-transactions-more">Посмотреть все в «Операциях»</button>`
+                    : '';
+                const headerLabel = isSingle ? 'Оплата по ссылке' : 'Последние оплаты';
+                return `
+                    <div class="payment-link-transactions">
+                        <div class="payment-link-transactions-header">
+                            <span class="payment-link-transactions-title">${headerLabel}</span>
+                            <button type="button" onclick="event.stopPropagation(); openLinkTransactions('${link.id}');" class="payment-link-transactions-close" aria-label="Свернуть">×</button>
+                        </div>
+                        <div class="payment-link-transactions-list">
+                            ${rowsHtml}
+                        </div>
+                        ${moreButtonHtml}
                     </div>
                 `;
             };
