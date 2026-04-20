@@ -574,15 +574,10 @@
     font-size: 13px;
     line-height: 1;
     cursor: pointer;
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.15s ease;
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
-
-.prototype-mode-switcher:hover,
-.prototype-mode-switcher:focus-visible {
-    opacity: 1;
 }
 
 .prototype-mode-switcher-dot {
