@@ -113,6 +113,9 @@
             }
             const modalOverlay = document.getElementById('modalOverlay');
             if (modalOverlay && modalOverlay.style.display !== 'none' && createWizardDraft && !editingLinkId && typeof renderCreateModalContent === 'function') {
+                if (isIntermediateMode() && createWizardStep > 3) {
+                    createWizardStep = 3;
+                }
                 renderCreateModalContent(createWizardDraft);
             }
         }

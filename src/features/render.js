@@ -640,7 +640,8 @@
         }
 
         function goCreateWizardStep(step) {
-            const nextStep = Math.max(1, Math.min(4, step));
+            const maxStep = isIntermediateMode() ? 3 : 4;
+            const nextStep = Math.max(1, Math.min(maxStep, step));
             if (nextStep > createWizardStep) {
                 for (let s = createWizardStep; s < nextStep; s++) {
                     if (!validateCreateWizardStep(s, createWizardDraft)) {
@@ -785,7 +786,7 @@
             createWizardDraft = safeDraft;
             const stepContent = renderCreateWizardStep(safeDraft);
             const stepNames = isIntermediateMode()
-                ? ['Основыные поля', 'Формат платежа', 'Фискализация', 'Подтверждение']
+                ? ['Основыные поля', 'Формат платежа', 'Фискализация']
                 : ['Основыные поля', 'Формат платежа', 'Фискализация', 'Шаблонизация'];
             if (modalTopBar) {
                 modalTopBar.style.display = 'flex';
@@ -960,7 +961,9 @@
                         </div>
                         <div class="flex justify-between pt-2">
                             <button type="button" onclick="goCreateWizardStep(2)" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Назад</button>
-                            <button type="button" onclick="goCreateWizardStep(4)" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Далее</button>
+                            ${isIntermediateMode()
+                                ? `<button type="button" onclick="saveDraft()" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Создать</button>`
+                                : `<button type="button" onclick="goCreateWizardStep(4)" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Далее</button>`}
                         </div>
                     </div>
                 `;
