@@ -33,7 +33,9 @@
                 const singleTimerHtml = linkType === 'single' && link.status !== 'paid'
                     ? `<span class="payment-link-expiry"><span class="payment-link-expiry-icon" aria-hidden="true"></span>Осталось ${getSingleLinkDaysLeft(link)} дн.</span>`
                     : '';
-                const transactionsButtonHtml = `<button onclick="event.stopPropagation(); openLinkTransactions('${link.id}');" class="payment-link-action-btn" title="Транзакции">
+                const transactionsButtonHtml = isIntermediateMode()
+                    ? ''
+                    : `<button onclick="event.stopPropagation(); openLinkTransactions('${link.id}');" class="payment-link-action-btn" title="Транзакции">
                                 <span class="payment-link-action-icon payment-link-action-icon-transactions" aria-hidden="true"></span>
                             </button>`;
                 const actionsHtml = link.status === 'paid'
@@ -348,6 +350,7 @@
                             ` : ''}
                         </div>
                     </div>
+                    ${isIntermediateMode() ? '' : `
                     <div class="space-y-4 pt-2">
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <div class="flex items-center justify-between">
@@ -355,7 +358,7 @@
                                     <label class="text-sm font-normal text-black">Создать шаблон</label>
                                     <p class="text-xs text-gray-500 mt-0.5">Сохраните текущие настройки, чтобы быстро создавать ссылки по шаблону</p>
                                 </div>
-                                <button type="button" onclick="toggleCreateTemplate()" 
+                                <button type="button" onclick="toggleCreateTemplate()"
                                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
                                         createTemplate ? '' : 'opacity-50'
                                     }" style="background-color: ${createTemplate ? '#DED0BB' : '#E5E7EB'};">
@@ -366,107 +369,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="space-y-4 pt-5">
-                        <button type="button" onclick="toggleAdditionalFields()" class="modal-section-toggle">
-                            <span>Дополнительные поля</span>
-                            <span>${additionalFieldsExpanded ? '−' : '+'}</span>
-                        </button>
-                        <div class="space-y-4" style="display: ${additionalFieldsExpanded ? 'block' : 'none'};">
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div>
-                                        <label class="text-sm font-normal text-black">Собирать email</label>
-                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле email в форму оплаты</p>
-                                    </div>
-                                    <button type="button" onclick="toggleCollectEmail()" 
-                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
-                                            collectEmail ? '' : 'opacity-50'
-                                        }" style="background-color: ${collectEmail ? '#DED0BB' : '#E5E7EB'};">
-                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                                            collectEmail ? 'translate-x-6' : 'translate-x-1'
-                                        }"></span>
-                                    </button>
-                                </div>
-                                ${collectEmail ? `
-                                    <div class="mt-3 pt-3 border-t border-gray-200">
-                                        <div class="flex items-center justify-between">
-                                            <label class="text-sm text-black">Обязательное поле</label>
-                                            <button type="button" onclick="toggleEmailRequired()" 
-                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
-                                                    emailRequired ? '' : 'opacity-50'
-                                                }" style="background-color: ${emailRequired ? '#DED0BB' : '#E5E7EB'};">
-                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
-                                                    emailRequired ? 'translate-x-5' : 'translate-x-0.5'
-                                                }"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div>
-                                        <label class="text-sm font-normal text-black">Собирать подробности о заказе</label>
-                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле комментария клиента</p>
-                                    </div>
-                                    <button type="button" onclick="toggleCollectOrderDetails()" 
-                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
-                                            collectOrderDetails ? '' : 'opacity-50'
-                                        }" style="background-color: ${collectOrderDetails ? '#DED0BB' : '#E5E7EB'};">
-                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                                            collectOrderDetails ? 'translate-x-6' : 'translate-x-1'
-                                        }"></span>
-                                    </button>
-                                </div>
-                                ${collectOrderDetails ? `
-                                    <div class="mt-3 pt-3 border-t border-gray-200">
-                                        <div class="flex items-center justify-between">
-                                            <label class="text-sm text-black">Обязательное поле</label>
-                                            <button type="button" onclick="toggleOrderDetailsRequired()" 
-                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
-                                                    orderDetailsRequired ? '' : 'opacity-50'
-                                                }" style="background-color: ${orderDetailsRequired ? '#DED0BB' : '#E5E7EB'};">
-                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
-                                                    orderDetailsRequired ? 'translate-x-5' : 'translate-x-0.5'
-                                                }"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div>
-                                        <label class="text-sm font-normal text-black">Собирать номер телефона</label>
-                                        <p class="text-xs text-gray-500 mt-0.5">Добавить поле телефона в форму оплаты</p>
-                                    </div>
-                                    <button type="button" onclick="toggleCollectPhone()" 
-                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors hover:opacity-90 ${
-                                            collectPhone ? '' : 'opacity-50'
-                                        }" style="background-color: ${collectPhone ? '#DED0BB' : '#E5E7EB'};">
-                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                                            collectPhone ? 'translate-x-6' : 'translate-x-1'
-                                        }"></span>
-                                    </button>
-                                </div>
-                                ${collectPhone ? `
-                                    <div class="mt-3 pt-3 border-t border-gray-200">
-                                        <div class="flex items-center justify-between">
-                                            <label class="text-sm text-black">Обязательное поле</label>
-                                            <button type="button" onclick="togglePhoneRequired()" 
-                                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors hover:opacity-90 ${
-                                                    phoneRequired ? '' : 'opacity-50'
-                                                }" style="background-color: ${phoneRequired ? '#DED0BB' : '#E5E7EB'};">
-                                                <span class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
-                                                    phoneRequired ? 'translate-x-5' : 'translate-x-0.5'
-                                                }"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
+                    `}
                     ${(link && link.qrDataUrl) ? renderLinkActions(link) : ''}
                 </div>
             `;
@@ -567,7 +470,6 @@
         }
 
         function toggleAdditionalFields() {
-            additionalFieldsExpanded = !additionalFieldsExpanded;
             const currentDraft = getCurrentFormDraft();
             if (editingLinkId) {
                 openEditModal(editingLinkId, currentDraft);
@@ -875,12 +777,9 @@
             const safeDraft = draft || createWizardDraft || getDefaultCreateDraft();
             createWizardDraft = safeDraft;
             const stepContent = renderCreateWizardStep(safeDraft);
-            const stepNames = [
-                'Основыные поля',
-                'Формат платежа',
-                'Фискализация',
-                'Шаблонизация'
-            ];
+            const stepNames = isIntermediateMode()
+                ? ['Основыные поля', 'Формат платежа', 'Фискализация', 'Подтверждение']
+                : ['Основыные поля', 'Формат платежа', 'Фискализация', 'Шаблонизация'];
             if (modalTopBar) {
                 modalTopBar.style.display = 'flex';
                 modalTopBar.innerHTML = `
@@ -915,8 +814,10 @@
 
         function renderCreateWizardStep(draft) {
             if (createWizardStep === 1) {
+                const intermediate = isIntermediateMode();
                 return `
                     <div class="space-y-5">
+                        ${intermediate ? '' : `
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Шаблон</label>
                             <select onchange="selectTemplateForCreate(this.value)" class="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
@@ -926,6 +827,7 @@
                                 `).join('')}
                             </select>
                         </div>
+                        `}
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Название ссылки</label>
                             <input type="text" value="${draft.title || ''}" oninput="updateCreateWizardField('title', this.value)"
@@ -941,7 +843,7 @@
                         <div class="flex justify-between pt-2">
                             <span></span>
                             <div class="flex items-center gap-2">
-                                ${draft.templateId ? `<button type="button" onclick="createFromTemplateWithoutEditing()" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Создать без редактировани</button>` : ''}
+                                ${(!intermediate && draft.templateId) ? `<button type="button" onclick="createFromTemplateWithoutEditing()" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Создать без редактировани</button>` : ''}
                                 <button type="button" onclick="goCreateWizardStep(2)" class="rounded-xl bg-[#DED0BB] px-5 py-2.5 text-sm text-black hover:opacity-90">Далее</button>
                             </div>
                         </div>
@@ -950,8 +852,10 @@
             }
 
             if (createWizardStep === 2) {
+                const intermediate = isIntermediateMode();
                 return `
                     <div class="space-y-5">
+                        ${intermediate ? '' : `
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Тип ссылки</label>
                             <div class="flex gap-3">
@@ -959,6 +863,7 @@
                                 <button type="button" onclick="updateCreateWizardField('linkType', 'single', true)" class="flex-1 rounded-xl px-4 py-2.5 text-sm ${draft.linkType === 'single' ? '' : 'opacity-60'}" style="background-color: ${draft.linkType === 'single' ? '#DED0BB' : '#F5F5F5'};">Одноразовая</button>
                             </div>
                         </div>
+                        `}
                         <div>
                             <label class="mb-2 block text-sm font-normal text-black">Формат оплаты</label>
                             <div class="flex gap-3">
@@ -983,23 +888,6 @@
             if (createWizardStep === 3) {
                 return `
                     <div class="space-y-5">
-                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <label class="text-sm font-normal text-black">Дополнительные поля</label>
-                                    <p class="text-xs text-gray-500 mt-0.5">Настройте сбор контактов и деталей заказа</p>
-                                </div>
-                                <button type="button" onclick="updateCreateWizardField('additionalEnabled', !(createWizardDraft.additionalEnabled), true)" class="relative inline-flex h-6 w-11 items-center rounded-full hover:opacity-90 ${createWizardDraft.additionalEnabled ? '' : 'opacity-50'}" style="background-color: ${createWizardDraft.additionalEnabled ? '#DED0BB' : '#E5E7EB'};">
-                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ${createWizardDraft.additionalEnabled ? 'translate-x-6' : 'translate-x-1'}"></span>
-                                </button>
-                            </div>
-                            ${createWizardDraft.additionalEnabled ? `
-                            <div class="mt-4 space-y-3 border-t border-gray-200 pt-4">
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectEmail ? 'checked' : ''} onchange="updateCreateWizardField('collectEmail', this.checked, true)"> Собирать email</label>
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectPhone ? 'checked' : ''} onchange="updateCreateWizardField('collectPhone', this.checked, true)"> Собирать номер телефона</label>
-                                <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${draft.collectOrderDetails ? 'checked' : ''} onchange="updateCreateWizardField('collectOrderDetails', this.checked, true)"> Собирать подробности заказа</label>
-                            </div>` : ''}
-                        </div>
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1071,10 +959,12 @@
                 `;
             }
 
+            const intermediate = isIntermediateMode();
             return `
                 <div class="space-y-5">
                     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
-                        <p class="text-sm text-black">Проверьте настройки и создайте ссылку. Если нужно, сохраните эти параметры как шаблон для быстрого создания в будущем.</p>
+                        <p class="text-sm text-black">${intermediate ? 'Проверьте настройки и создайте платежную ссылку.' : 'Проверьте настройки и создайте ссылку. Если нужно, сохраните эти параметры как шаблон для быстрого создания в будущем.'}</p>
+                        ${intermediate ? '' : `
                         <div class="flex items-center justify-between">
                             <div>
                                 <label class="text-sm font-normal text-black">Сохранить как шаблон</label>
@@ -1092,6 +982,7 @@
                                     placeholder="Например, Шаблон консультации">
                             </div>
                         ` : ''}
+                        `}
                     </div>
                     <div class="flex justify-between pt-2">
                         <button type="button" onclick="goCreateWizardStep(3)" class="rounded-xl bg-gray-200 px-5 py-2.5 text-sm text-black hover:bg-gray-300">Назад</button>

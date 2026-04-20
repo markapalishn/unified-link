@@ -554,6 +554,49 @@
     width: 100%;
 }
 
+.prototype-mode-switcher {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #111827;
+    font-family: 'SF Pro', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.28px;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.prototype-mode-switcher:hover,
+.prototype-mode-switcher:focus-visible {
+    opacity: 1;
+}
+
+.prototype-mode-switcher-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #22c55e;
+    display: inline-block;
+}
+
+body.prototype-intermediate .prototype-mode-switcher-dot {
+    background: #f59e0b;
+}
+
 .sidebar-banner-carousel {
     width: 340px;
     max-width: 100%;

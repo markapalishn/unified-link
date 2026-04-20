@@ -332,27 +332,36 @@
                 </div>
             </div>
             <!-- Second Level Navigation -->
-            <div class="max-w-[1286px] mx-auto h-16 border-t border-[var(--tui-border-normal)] overflow-x-auto scrollbar-hide">
-                <div class="flex items-center gap-6 px-4 md:px-8 min-w-max h-full">
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('main', this)">
-                        Главное
-                    </button>
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('operations', this)">
-                        Операции
-                    </button>
-                    <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('accounts', this)">
-                        Платежные ссылки
-                    </button>
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('reimbursement', this)">
-                        Возмещение
-                    </button>
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('shops', this)">
-                        Магазины
-                    </button>
-                    <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('blacklist', this)">
-                        Черный список
-                    </button>
+            <div class="max-w-[1286px] mx-auto h-16 border-t border-[var(--tui-border-normal)] relative">
+                <div class="h-full overflow-x-auto scrollbar-hide">
+                    <div class="flex items-center gap-6 px-4 md:px-8 min-w-max h-full">
+                        <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('main', this)">
+                            Главное
+                        </button>
+                        <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('operations', this)">
+                            Операции
+                        </button>
+                        <button type="button" class="nav-tab nav-tab-accounts-intermediate whitespace-nowrap flex-shrink-0" data-intermediate-tab="accounts" style="display: none;">
+                            Счета
+                        </button>
+                        <button class="nav-tab active whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('accounts', this)">
+                            Платежные ссылки
+                        </button>
+                        <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('reimbursement', this)">
+                            Возмещение
+                        </button>
+                        <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('shops', this)">
+                            Магазины
+                        </button>
+                        <button class="nav-tab whitespace-nowrap flex-shrink-0" onclick="setActiveSubTab('blacklist', this)">
+                            Черный список
+                        </button>
+                    </div>
                 </div>
+                <button type="button" id="prototypeModeSwitcher" class="prototype-mode-switcher" onclick="togglePrototypeMode()" aria-label="Переключить режим прототипа">
+                    <span class="prototype-mode-switcher-dot" aria-hidden="true"></span>
+                    <span class="prototype-mode-switcher-label" id="prototypeModeLabel">Целевая схема</span>
+                </button>
             </div>
         </nav>
 
@@ -391,7 +400,7 @@
                                 <div class="sidebar-banner-carousel" aria-label="Промо-баннеры">
                                     <div class="sidebar-banner-track" id="sidebarBannerTrack">
                                         <div class="sidebar-banner-slide is-active" data-slide-index="0">
-                                            <img src="assets/banner_shablon.png" alt="Баннер с шаблоном" class="sidebar-banner-image">
+                                            <img id="sidebarBannerImg" src="assets/banner_shablon.png" alt="Баннер с шаблоном" class="sidebar-banner-image">
                                         </div>
                                     </div>
                                 </div>

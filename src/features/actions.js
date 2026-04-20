@@ -846,6 +846,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            applyPrototypeModeUI();
             render();
             initSidebarBannerCarousel();
             const modalSaveButton = document.getElementById('modalSaveButton');

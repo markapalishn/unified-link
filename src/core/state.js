@@ -72,10 +72,54 @@
         let editingLinkId = null; // ID ссылки, которая сейчас редактируется
         let searchMode = 'merchant';
         let searchQuery = '';
-        let additionalFieldsExpanded = false;
         let archivedLinksExpanded = false;
         let createWizardStep = 1;
         let createWizardDraft = null;
+
+        const PROTOTYPE_MODE_INTERMEDIATE = 'intermediate';
+        const PROTOTYPE_MODE_TARGET = 'target';
+        let prototypeMode = localStorage.getItem('prototypeMode') === PROTOTYPE_MODE_INTERMEDIATE
+            ? PROTOTYPE_MODE_INTERMEDIATE
+            : PROTOTYPE_MODE_TARGET;
+
+        function isIntermediateMode() {
+            return prototypeMode === PROTOTYPE_MODE_INTERMEDIATE;
+        }
+
+        function applyPrototypeModeUI() {
+            const intermediate = isIntermediateMode();
+            document.body.classList.toggle('prototype-intermediate', intermediate);
+            const label = document.getElementById('prototypeModeLabel');
+            if (label) {
+                label.textContent = intermediate ? 'Промежуточный сценарий' : 'Целевая схема';
+            }
+            const bannerImg = document.getElementById('sidebarBannerImg');
+            if (bannerImg) {
+                bannerImg.src = intermediate ? 'assets/banner_symma.png' : 'assets/banner_shablon.png';
+                bannerImg.alt = intermediate ? 'Баннер промежуточного сценария' : 'Баннер с шаблоном';
+            }
+            const accountsIntermediateTab = document.querySelector('.nav-tab-accounts-intermediate');
+            if (accountsIntermediateTab) {
+                accountsIntermediateTab.style.display = intermediate ? '' : 'none';
+            }
+        }
+
+        function setPrototypeMode(mode) {
+            prototypeMode = mode === PROTOTYPE_MODE_INTERMEDIATE ? PROTOTYPE_MODE_INTERMEDIATE : PROTOTYPE_MODE_TARGET;
+            localStorage.setItem('prototypeMode', prototypeMode);
+            applyPrototypeModeUI();
+            if (typeof renderLinksList === 'function') {
+                renderLinksList();
+            }
+            const modalOverlay = document.getElementById('modalOverlay');
+            if (modalOverlay && modalOverlay.style.display !== 'none' && createWizardDraft && !editingLinkId && typeof renderCreateModalContent === 'function') {
+                renderCreateModalContent(createWizardDraft);
+            }
+        }
+
+        function togglePrototypeMode() {
+            setPrototypeMode(isIntermediateMode() ? PROTOTYPE_MODE_TARGET : PROTOTYPE_MODE_INTERMEDIATE);
+        }
 
         function getDefaultReceiptItem() {
             return {
@@ -385,7 +429,6 @@
         function openCreateModal() {
             editingLinkId = null;
             selectedLinkId = null;
-            additionalFieldsExpanded = false;
             createWizardStep = 1;
             createWizardDraft = getDefaultCreateDraft();
             // Очищаем временные значения из localStorage при открытии модального окна создания
