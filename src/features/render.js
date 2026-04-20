@@ -87,9 +87,12 @@
             };
 
             const activeHtml = activeLinks.map(renderLinkRow).join('');
+            const archivedTitle = intermediate
+                ? 'Отключенные ссылки'
+                : 'Оплаченные, просроченные и отключенные ссылки';
             const archivedHeaderHtml = archivedLinks.length > 0
                 ? `<button class="archived-links-toggle" onclick="toggleArchivedLinks()">
-                        <span>Оплаченные, просроченные и отключенные ссылки</span>
+                        <span>${archivedTitle}</span>
                         <span class="archived-links-toggle-icon">${archivedLinksExpanded ? '−' : '+'}</span>
                    </button>`
                 : '';
