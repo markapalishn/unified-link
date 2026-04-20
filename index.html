@@ -288,6 +288,26 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-white min-h-screen">
+    <div class="mobile-blocker" role="alert" aria-live="polite">
+        <div class="mobile-blocker-card">
+            <div class="mobile-blocker-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2.5" y="3.5" width="19" height="13" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M8.5 20.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M12 16.5v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1 class="mobile-blocker-title">Макет&nbsp;не&nbsp;адаптирован под&nbsp;мобильные устройства</h1>
+            <p class="mobile-blocker-text">Откройте страницу с&nbsp;компьютера или&nbsp;увеличьте окно браузера.</p>
+            <div class="mobile-blocker-hint">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M3 4.5h14v8H3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                    <path d="M1.5 15.5h17" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                от 1024&nbsp;px
+            </div>
+        </div>
+    </div>
     <div id="app">
         <!-- Navigation Header -->
         <nav class="bg-[var(--tui-background-base-alt)] border-b border-[var(--tui-border-normal)]">

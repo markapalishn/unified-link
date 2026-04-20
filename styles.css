@@ -930,3 +930,106 @@ body.prototype-intermediate .faq-card-list-intermediate {
         flex-shrink: 0;
     }
 }
+
+.mobile-blocker {
+    display: none;
+}
+
+@media (max-width: 1023.98px) {
+    html,
+    body {
+        overflow: hidden;
+        height: 100%;
+    }
+
+    body > #app,
+    body > #linkModal,
+    body > #notification,
+    body > .link-modal-backdrop,
+    body > .modal {
+        display: none !important;
+    }
+
+    .mobile-blocker {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #FFFFFF;
+        z-index: 9999;
+        font-family: 'SF Pro', system-ui, -apple-system, sans-serif;
+        color: #111827;
+    }
+
+    .mobile-blocker-card {
+        max-width: 380px;
+        width: 100%;
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 16px;
+        padding: 24px 20px 20px;
+        text-align: center;
+    }
+
+    .mobile-blocker-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        background: #DED0BB;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5B4726;
+    }
+
+    .mobile-blocker-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .mobile-blocker-title {
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0 0 8px;
+        letter-spacing: -0.2px;
+        color: #111827;
+        text-wrap: balance;
+        overflow-wrap: anywhere;
+    }
+
+    .mobile-blocker-text {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #4b5563;
+        margin: 0 0 16px;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+    }
+
+    .mobile-blocker-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 14px;
+        background: #F5EEDF;
+        color: #6b5636;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: -0.1px;
+        max-width: 100%;
+        text-align: center;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+    }
+
+    .mobile-blocker-hint svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+    }
+}
